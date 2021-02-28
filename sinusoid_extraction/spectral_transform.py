@@ -10,7 +10,15 @@ H = 128  # hop size
 N = 8192  # FFT length
 
 def spectral_transform(audio, sampling_rate):
+    # STFT
     f, t, Zxx = stft(audio, sampling_rate, nperseg=M, noverlap=M - H, nfft=N)
+
+    # peak finding (for each time window)
+    for i in range(Zxx.shape[1]):
+        peaks, _ = find_peaks(np.abs(Zxx[:, i]))
+        non_peaks = np.setdiff1d(np.arange(Zxx.shape[0]), peaks)
+        np.put(Zxx[:, i], non_peaks, 0)
+
     return f, t, Zxx
 
 if __name__ == '__main__':
@@ -21,15 +29,7 @@ if __name__ == '__main__':
 
     sampling_rate, audio = load_wav_file(args.input_audio_file, merge_channels=True)
 
-    # STFT
     f, t, Zxx = spectral_transform(audio, sampling_rate)
-
-    # peak finding
-    for i in range(Zxx.shape[1]):
-        # TODO: tune parameters for find_peaks
-        peaks, _ = find_peaks(np.abs(Zxx[:, i]))
-        non_peaks = np.setdiff1d(np.arange(Zxx.shape[0]), peaks)
-        np.put(Zxx[:, i], non_peaks, 0)
 
     plt.pcolormesh(t, f[:400], np.abs(Zxx[:400]), cmap='Reds', shading='gouraud')
     plt.savefig(args.output_spectrogram_file, dpi=1024)
