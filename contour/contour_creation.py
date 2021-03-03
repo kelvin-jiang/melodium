@@ -52,6 +52,10 @@ def contour_creation():
     saliences = np.load('./data/salamon-salience-10s.npy')
     high, low, hq = filter_saliences(saliences)
 
+    contours = []
+    while len(hq) > 0:
+        pass
+
 
 if __name__ == '__main__':
     contour_creation()

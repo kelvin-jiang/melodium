@@ -5,6 +5,7 @@ from scipy.signal import find_peaks
 import time
 import multiprocessing as mp
 from sinusoid_extraction import H   # hop size
+import math
 
 
 # number of quantization bins for F0 candidates
@@ -14,7 +15,7 @@ n_harmonics = 20
 # harmonic weighting parameter (alpha in paper)
 harmonic_weight_param = 0.8
 # magnitude compression parameter (beta in paper)
-magnitude_compression = 1
+# magnitude_compression = 1
 # maximum allowed difference (in dB) between a magnitude
 # and the and the magnitude of the highest peak (gamma in paper)
 max_magnitude_diff = 40
@@ -28,25 +29,21 @@ def get_bin_index(freq):
     :param freq: frequency from 55Hz to 1759Hz
     :return: the quantized bin number [0,599]
     """
-    if freq < min_freq or freq >= max_freq:
-        print('error: frequency out of quantization range')
-        sys.exit(1)
-
-    return np.floor((1200 * np.log2(freq/55)) / 10)
+    return (1200 * math.log2(freq/55)) // 10
 
 
 def magnitude_threshold(magnitude, max_magnitude):
-    db_diff = 20 * np.log10(max_magnitude / magnitude)
+    db_diff = 20 * math.log10(max_magnitude / magnitude)
     return 1 if db_diff < max_magnitude_diff else 0
 
 
 def weighting_function(b, h, f0):
     # distance in semitones between harmonic frequency and center frequency of bin b
-    if f0 < min_freq or f0 >= max_freq:
-        return 0
     d_semitones = abs(get_bin_index(f0) - b) / 10
-    weighting = (np.cos(d_semitones * np.pi / 2) ** 2) * (harmonic_weight_param ** (h - 1))
-    return weighting if d_semitones <= 1 else 0
+    if d_semitones > 1:
+        return 0
+    weight = math.cos(d_semitones * math.pi / 2)
+    return weight * weight * (harmonic_weight_param ** (h - 1))
 
 
 def salience_function(b, f, peaks, max_magnitude):
@@ -84,8 +81,7 @@ def salience_function(b, f, peaks, max_magnitude):
                 has_weight = True
                 first_freq_ind = i
             mag_threshold = magnitude_threshold(magnitude, max_magnitude)
-            compressed_magnitude = magnitude ** magnitude_compression
-            salience += mag_threshold * weighting * compressed_magnitude
+            salience += mag_threshold * weighting * magnitude
 
     return salience
 
