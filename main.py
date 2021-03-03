@@ -28,13 +28,13 @@ def extract_melody(audio, sampling_rate):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input_audio_file', required=True)
-    parser.add_argument('--output_melody_file', required=True)
+    parser.add_argument('--input', required=True)
+    parser.add_argument('--output', required=True)
     args = parser.parse_args()
 
-    sampling_rate, audio = load_wav_file(args.input_audio_file)
+    sampling_rate, audio = load_wav_file(args.input)
     melody = extract_melody(audio, sampling_rate)
-    # write_wav_file(melody, args.output_melody_file, sampling_rate)
+    # write_wav_file(melody, args.output, sampling_rate)
 
 
 if __name__ == '__main__':

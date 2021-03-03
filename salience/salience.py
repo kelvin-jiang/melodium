@@ -63,18 +63,23 @@ def salience_function(b, f, peaks, max_magnitude):
     first_freq_ind = 0
     for h in range(1, n_harmonics + 1):
         has_weight = False
+        # since our harmonics and frequencies are sorted, so only need to look for frequencies
+        # that are greater than smallest activated frequency in the last harmonic h
         for i in range(first_freq_ind, peaks.shape[0]):
             magnitude = peaks[i]
             freq = f[i]
             f0 = freq / h
             if magnitude <= 0 or f0 < min_freq or f0 >= max_freq:
+                # skip out of bounds frequencies
                 continue
             mag_threshold = magnitude_threshold(magnitude, max_magnitude)
             weighting = weighting_function(b, h, f0)
             if get_bin_index(f0) > b and weighting == 0:
-                # early stopping
+                # stop early, because later frequencies will be too large
                 break
             if weighting > 0 and not has_weight:
+                # save the smallest activated frequency in this iteration
+                # for optimization purposes
                 has_weight = True
                 first_freq_ind = i
             compressed_magnitude = magnitude ** magnitude_compression
@@ -94,14 +99,19 @@ def compute_salience(f, peaks):
 
 def plot_saliences(t, saliences):
     bins = np.arange(n_bins)
-    plt.pcolormesh(t, bins, saliences, shading='gouraud')
+    # take the middle frequency in each bin
+    frequencies = 55 * (2 ** ((10 * bins + 5)/1200))
+    plt.pcolormesh(t, frequencies, saliences, shading='gouraud')
+    plt.title('Salience')
+    plt.ylabel('frequency (hz)')
+    plt.xlabel('time (s)')
     plt.savefig('./output/salience', dpi=1024)
 
 
 def compute_saliences(f, t, zxx):
     # take only magnitudes
     zxx = np.abs(zxx)
-    t_size = 100
+    t_size = 2
     saliences = np.zeros((n_bins, t_size))
     for i in range(t_size):
         start_time = time.time()
