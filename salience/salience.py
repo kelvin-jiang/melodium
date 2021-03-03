@@ -74,9 +74,8 @@ def salience_function(b, f, peaks, max_magnitude):
             if magnitude <= 0 or f0 < min_freq or f0 >= max_freq:
                 # skip out of bounds frequencies
                 continue
-            mag_threshold = magnitude_threshold(magnitude, max_magnitude)
             weighting = weighting_function(b, h, f0)
-            if get_bin_index(f0) > b and weighting == 0:
+            if weighting == 0 and get_bin_index(f0) > b:
                 # stop early, because later frequencies will be too large
                 break
             if weighting > 0 and not has_weight:
@@ -84,6 +83,7 @@ def salience_function(b, f, peaks, max_magnitude):
                 # for optimization purposes
                 has_weight = True
                 first_freq_ind = i
+            mag_threshold = magnitude_threshold(magnitude, max_magnitude)
             compressed_magnitude = magnitude ** magnitude_compression
             salience += mag_threshold * weighting * compressed_magnitude
 
@@ -122,8 +122,8 @@ def compute_saliences(f, t, zxx, n_workers, sampling_rate, t_seconds=10):
 
     # take only magnitudes
     zxx = np.abs(zxx)
-    # number of time samples (frames) in t_seconds
-    t_size = (t_seconds * sampling_rate) // H + 1
+    # number of time samples (frames) in t_seconds (using ceil)
+    t_size = -(-t_seconds * sampling_rate) // H
     saliences = np.zeros((n_bins, t_size))
 
     # use multiprocessing to compute salience
