@@ -108,11 +108,10 @@ def compute_salience(magnitudes, f, i):
 def plot_saliences(t, saliences):
     bins = np.arange(n_bins)
     # take the middle frequency in each bin
-    frequencies = 55 * (2 ** ((10 * bins + 5)/1200))
-    plt.pcolormesh(t, frequencies, saliences, shading='gouraud')
+    # frequencies = 55 * (2 ** ((10 * bins + 5)/1200))
+    plt.pcolormesh(t, bins, saliences, shading='gouraud')
     plt.title('Salience')
-    plt.ylabel('frequency (hz)')
-    plt.ylim([0, 600])
+    plt.ylabel('frequency (bins)')
     plt.xlabel('time (s)')
     plt.savefig('./output/salience', dpi=1024)
 
@@ -122,18 +121,22 @@ def compute_saliences(f, t, zxx, n_workers):
 
     # take only magnitudes
     zxx = np.abs(zxx)
-    t_size = 200
+    # 1/3 of the time
+    t_size = len(t) // 3 + 1
     saliences = np.zeros((n_bins, t_size))
 
     # use multiprocessing to compute salience
     pool = mp.Pool(processes=n_workers)
     jobs = [(zxx[:, i], f, i) for i in range(t_size)]
-    results = pool.starmap(compute_salience, jobs)
+    chunksize = int(t_size / (n_workers * 5))
+    chunksize = 1 if chunksize < 1 else chunksize
+    results = pool.starmap(compute_salience, jobs, chunksize=chunksize)
     pool.close()
     pool.join()
 
     for i, salience in results:
         saliences[:, i] = salience
 
-    plot_saliences(t[:t_size], saliences)
     print(f'salience done: {time.time() - start_time : .2f}s')
+    plot_saliences(t[:t_size], saliences)
+    np.save('./output/salience', saliences)
