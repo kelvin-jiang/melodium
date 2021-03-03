@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 import time
+import multiprocessing as mp
 
 
 # number of quantization bins for F0 candidates
@@ -88,13 +89,20 @@ def salience_function(b, f, peaks, max_magnitude):
     return salience
 
 
-def compute_salience(f, peaks):
+def compute_salience(magnitudes, f, i):
+    start_time = time.time()
+    # find peaks
+    peak_indices, _ = find_peaks(magnitudes)
+    peaks, peak_f = magnitudes[peak_indices], f[peak_indices]
+
     salience = np.zeros(n_bins)
     max_magnitude = np.max(peaks)
-    for b in range(n_bins):
-        salience[b] = salience_function(b, f, peaks, max_magnitude)
 
-    return salience
+    for b in range(n_bins):
+        salience[b] = salience_function(b, peak_f, peaks, max_magnitude)
+
+    print(f'frame {i}: {time.time() - start_time : .2f}s')
+    return i, salience
 
 
 def plot_saliences(t, saliences):
@@ -109,21 +117,23 @@ def plot_saliences(t, saliences):
     plt.savefig('./output/salience', dpi=1024)
 
 
-def compute_saliences(f, t, zxx):
+def compute_saliences(f, t, zxx, n_workers):
+    start_time = time.time()
+
     # take only magnitudes
     zxx = np.abs(zxx)
     t_size = 200
     saliences = np.zeros((n_bins, t_size))
-    for i in range(t_size):
-        start_time = time.time()
-        magnitudes = zxx[:, i]
-        # find peaks
-        peak_indices, _ = find_peaks(magnitudes)
 
-        # salience function
-        salience = compute_salience(
-            f[peak_indices], magnitudes[peak_indices])
+    # use multiprocessing to compute salience
+    pool = mp.Pool(processes=n_workers)
+    jobs = [(zxx[:, i], f, i) for i in range(t_size)]
+    results = pool.starmap(compute_salience, jobs)
+    pool.close()
+    pool.join()
+
+    for i, salience in results:
         saliences[:, i] = salience
-        print(f'{i+1}/{t_size}: {time.time() - start_time : .2f}s')
 
     plot_saliences(t[:t_size], saliences)
+    print(f'salience done: {time.time() - start_time : .2f}s')
