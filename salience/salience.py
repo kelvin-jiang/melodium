@@ -1,8 +1,8 @@
 import sys
-import math
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
+import time
 
 
 # number of quantization bins for F0 candidates
@@ -30,21 +30,20 @@ def get_bin_index(freq):
         print('error: frequency out of quantization range')
         sys.exit(1)
 
-    return math.floor((1200 * math.log2(freq/55)) / 10 + 1 - 1)
+    return np.floor((1200 * np.log2(freq/55)) / 10)
 
 
 def magnitude_threshold(magnitude, max_magnitude):
-    db_diff = 20 * math.log10(max_magnitude / magnitude)
+    db_diff = 20 * np.log10(max_magnitude / magnitude)
     return 1 if db_diff < max_magnitude_diff else 0
 
 
-def weighting_function(b, h, freq):
+def weighting_function(b, h, f0):
     # distance in semitones between harmonic frequency and center frequency of bin b
-    f0 = freq / h
     if f0 < min_freq or f0 >= max_freq:
         return 0
     d_semitones = abs(get_bin_index(f0) - b) / 10
-    weighting = (math.cos(d_semitones * math.pi / 2) ** 2) * (harmonic_weight_param ** (h - 1))
+    weighting = (np.cos(d_semitones * np.pi / 2) ** 2) * (harmonic_weight_param ** (h - 1))
     return weighting if d_semitones <= 1 else 0
 
 
@@ -61,14 +60,23 @@ def salience_function(b, f, peaks, max_magnitude):
 
     salience = 0.0
 
+    first_freq_ind = 0
     for h in range(1, n_harmonics + 1):
-        for i in range(peaks.shape[0]):
+        has_weight = False
+        for i in range(first_freq_ind, peaks.shape[0]):
             magnitude = peaks[i]
             freq = f[i]
-            if magnitude <= 0:
+            f0 = freq / h
+            if magnitude <= 0 or f0 < min_freq or f0 >= max_freq:
                 continue
             mag_threshold = magnitude_threshold(magnitude, max_magnitude)
-            weighting = weighting_function(b, h, freq)
+            weighting = weighting_function(b, h, f0)
+            if get_bin_index(f0) > b and weighting == 0:
+                # early stopping
+                break
+            if weighting > 0 and not has_weight:
+                has_weight = True
+                first_freq_ind = i
             compressed_magnitude = magnitude ** magnitude_compression
             salience += mag_threshold * weighting * compressed_magnitude
 
@@ -79,8 +87,6 @@ def compute_salience(f, peaks):
     salience = np.zeros(n_bins)
     max_magnitude = np.max(peaks)
     for b in range(n_bins):
-        if b % 100 == 99:
-            print(f'{b+1}/{n_bins}')
         salience[b] = salience_function(b, f, peaks, max_magnitude)
 
     return salience
@@ -98,7 +104,7 @@ def compute_saliences(f, t, zxx):
     t_size = 100
     saliences = np.zeros((n_bins, t_size))
     for i in range(t_size):
-        print(f'{i+1}/{t_size}')
+        start_time = time.time()
         magnitudes = zxx[:, i]
         # find peaks
         peak_indices, _ = find_peaks(magnitudes)
@@ -107,5 +113,6 @@ def compute_saliences(f, t, zxx):
         salience = compute_salience(
             f[peak_indices], magnitudes[peak_indices])
         saliences[:, i] = salience
+        print(f'{i+1}/{t_size}: {time.time() - start_time : .2f}s')
 
     plot_saliences(t[:t_size], saliences)
