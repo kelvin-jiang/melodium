@@ -13,7 +13,7 @@ n_bins = 600
 # number of harmonics considered (N_h in paper)
 n_harmonics = 20
 # harmonic weighting parameter (alpha in paper)
-harmonic_weight_param = 0.8
+harmonic_weight = 0.8
 # magnitude compression parameter (beta in paper)
 # magnitude_compression = 1
 # maximum allowed difference (in dB) between a magnitude
@@ -22,6 +22,15 @@ max_magnitude_diff = 40
 # quantization range in hz
 min_freq = 55
 max_freq = 1760
+
+
+harmonic_weights = []
+
+
+def compute_harmonic_weight():
+    harmonic_weights.append(1)
+    for i in range(1, n_harmonics):
+        harmonic_weights.append(harmonic_weights[i-1] * harmonic_weight)
 
 
 def get_bin_index(freq):
@@ -37,13 +46,13 @@ def magnitude_threshold(magnitude, max_magnitude):
     return 1 if db_diff < max_magnitude_diff else 0
 
 
-def weighting_function(b, h, f0):
+def weighting_function(b, h, b_f0):
     # distance in semitones between harmonic frequency and center frequency of bin b
-    d_semitones = abs(get_bin_index(f0) - b) / 10
+    d_semitones = abs(b_f0 - b) / 10
     if d_semitones > 1:
         return 0
     weight = math.cos(d_semitones * math.pi / 2)
-    return weight * weight * (harmonic_weight_param ** (h - 1))
+    return weight * weight * harmonic_weights[h-1]
 
 
 def salience_function(b, f, peaks, max_magnitude):
@@ -71,8 +80,9 @@ def salience_function(b, f, peaks, max_magnitude):
             if magnitude <= 0 or f0 < min_freq or f0 >= max_freq:
                 # skip out of bounds frequencies
                 continue
-            weighting = weighting_function(b, h, f0)
-            if weighting == 0 and get_bin_index(f0) > b:
+            b_f0 = get_bin_index(f0)
+            weighting = weighting_function(b, h, b_f0)
+            if weighting == 0 and b_f0 > b:
                 # stop early, because later frequencies will be too large
                 break
             if weighting > 0 and not has_weight:
@@ -121,6 +131,9 @@ def compute_saliences(f, t, zxx, n_workers, sampling_rate, t_seconds=10):
     # number of time samples (frames) in t_seconds (using ceil)
     t_size = -(-t_seconds * sampling_rate) // H
     saliences = np.zeros((n_bins, t_size))
+
+    # pre-compute harmonic weight
+    compute_harmonic_weight()
 
     # use multiprocessing to compute salience
     pool = mp.Pool(processes=n_workers)
