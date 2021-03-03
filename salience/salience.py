@@ -1,6 +1,9 @@
 import sys
 import math
 import numpy as np
+import matplotlib.pyplot as plt
+from scipy.signal import find_peaks
+
 
 # number of quantization bins for F0 candidates
 n_bins = 600
@@ -81,3 +84,28 @@ def compute_salience(f, peaks):
         salience[b] = salience_function(b, f, peaks, max_magnitude)
 
     return salience
+
+
+def plot_saliences(t, saliences):
+    bins = np.arange(n_bins)
+    plt.pcolormesh(t, bins, saliences, shading='gouraud')
+    plt.savefig('./output/salience', dpi=1024)
+
+
+def compute_saliences(f, t, zxx):
+    # take only magnitudes
+    zxx = np.abs(zxx)
+    t_size = 100
+    saliences = np.zeros((n_bins, t_size))
+    for i in range(t_size):
+        print(f'{i+1}/{t_size}')
+        magnitudes = zxx[:, i]
+        # find peaks
+        peak_indices, _ = find_peaks(magnitudes)
+
+        # salience function
+        salience = compute_salience(
+            f[peak_indices], magnitudes[peak_indices])
+        saliences[:, i] = salience
+
+    plot_saliences(t[:t_size], saliences)

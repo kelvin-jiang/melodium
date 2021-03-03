@@ -1,21 +1,8 @@
 import argparse
 
 from sinusoid_extraction import spectral_transform
-from salience import compute_salience
+from salience import compute_saliences
 from utils import load_wav_file, write_wav_file
-import matplotlib.pyplot as plt
-from scipy.signal import find_peaks
-import numpy as np
-
-
-# number of quantization bins for F0 candidates
-n_bins = 600
-
-
-def plot_saliences(t, saliences):
-    bins = np.arange(n_bins)
-    plt.pcolormesh(t, bins, saliences, shading='gouraud')
-    plt.savefig('./output/salience', dpi=1024)
 
 
 def extract_melody(audio, sampling_rate):
@@ -24,22 +11,8 @@ def extract_melody(audio, sampling_rate):
     f, t, zxx = spectral_transform(audio, sampling_rate)
     # TODO: frequency correction
 
-    # take only magnitudes
-    zxx = np.abs(zxx)
-    t_size = 10
-    saliences = np.zeros((n_bins, t_size))
-    for i in range(t_size):
-        print(f'{i+1}/{t_size}')
-        magnitudes = zxx[:, i]
-        # find peaks
-        peak_indices, _ = find_peaks(magnitudes)
-
-        # salience function
-        salience = compute_salience(
-            f[peak_indices], magnitudes[peak_indices])
-        saliences[:, i] = salience
-
-    plot_saliences(t[:t_size], saliences)
+    # compute saliences
+    compute_saliences(f, t, zxx)
 
     # pitch contour creation
     # TODO: peak filtering
