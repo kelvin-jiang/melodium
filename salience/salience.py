@@ -104,6 +104,7 @@ def plot_saliences(t, saliences):
     plt.pcolormesh(t, frequencies, saliences, shading='gouraud')
     plt.title('Salience')
     plt.ylabel('frequency (hz)')
+    plt.ylim([0, 600])
     plt.xlabel('time (s)')
     plt.savefig('./output/salience', dpi=1024)
 
@@ -111,7 +112,7 @@ def plot_saliences(t, saliences):
 def compute_saliences(f, t, zxx):
     # take only magnitudes
     zxx = np.abs(zxx)
-    t_size = 2
+    t_size = 200
     saliences = np.zeros((n_bins, t_size))
     for i in range(t_size):
         start_time = time.time()
