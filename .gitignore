@@ -166,3 +166,5 @@ dmypy.json
 
 # profiling data
 .prof
+
+.idea
