@@ -12,7 +12,7 @@ def extract_melody(audio, sampling_rate, n_workers):
     # TODO: frequency correction
 
     # compute saliences
-    compute_saliences(f, t, zxx, n_workers)
+    compute_saliences(f, t, zxx, n_workers, sampling_rate)
 
     # pitch contour creation
     # TODO: peak filtering

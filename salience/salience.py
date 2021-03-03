@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 import time
 import multiprocessing as mp
+from sinusoid_extraction import H   # hop size
 
 
 # number of quantization bins for F0 candidates
@@ -116,13 +117,13 @@ def plot_saliences(t, saliences):
     plt.savefig('./output/salience', dpi=1024)
 
 
-def compute_saliences(f, t, zxx, n_workers):
+def compute_saliences(f, t, zxx, n_workers, sampling_rate, t_seconds=10):
     start_time = time.time()
 
     # take only magnitudes
     zxx = np.abs(zxx)
-    # 1/3 of the time
-    t_size = len(t) // 3 + 1
+    # number of time samples (frames) in t_seconds
+    t_size = (t_seconds * sampling_rate) // H + 1
     saliences = np.zeros((n_bins, t_size))
 
     # use multiprocessing to compute salience
