@@ -141,7 +141,7 @@ def plot_contours(space, t_unit, filename, title):
     plt.title(title)
     plt.ylabel('frequency (bins)')
     plt.xlabel('time (s)')
-    plt.savefig(filename, dpi=256)
+    plt.savefig(filename, dpi=128)
 
 
 def create_contours(saliences, sampling_rate):
