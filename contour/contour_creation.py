@@ -135,7 +135,7 @@ def contour_creation(sampling_rate):
         # track backwards in time
         track_salience(
             contours=contours, high=high, low=low,
-            b_start=b, t_start=i, step=1,
+            b_start=b, t_start=i, step=-1,
             sampling_rate=sampling_rate
         )
     plot_contours(contours, H / sampling_rate)
