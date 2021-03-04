@@ -45,10 +45,10 @@ def filter_saliences(saliences):
         salience_peaks, _ = find_peaks(salience)
         max_salience = np.max(salience[salience_peaks])
         for b in salience_peaks:
-            accum.append(salience[b])
             if salience[b] >= peak_threshold * max_salience:
                 # only keep peaks that pass the threshold
                 high[i].add(b)
+                accum.append(salience[b])
             else:
                 # filter out peaks that don't pass threshold
                 low[i].add(b)
@@ -145,7 +145,7 @@ def plot_contours(space, t_unit):
 
 
 def contour_creation(sampling_rate):
-    saliences = np.load('./data/salamon-salience-10s.npy')
+    saliences = np.load('./data/salamon-salience-10s-elf.npy')
     t_size = saliences.shape[1]
     # get S+, S-, and a max-heap of salience in S+
     high, low, hq = filter_saliences(saliences)
@@ -184,7 +184,8 @@ def contour_creation(sampling_rate):
         contour = Contour(t_start, contour_peaks, contour_saliences, sampling_rate / H)
         contours.append(contour)
 
-    # plot_contours(space, H / sampling_rate)
+    print(f'{len(contours)} contours')
+    plot_contours(space, H / sampling_rate)
 
 
 if __name__ == '__main__':
