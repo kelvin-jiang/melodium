@@ -110,11 +110,11 @@ def plot_saliences(t, saliences):
     bins = np.arange(n_bins)
     # take the middle frequency in each bin
     # frequencies = 55 * (2 ** ((10 * bins + 5)/1200))
-    plt.pcolormesh(t, bins, saliences, shading='gouraud')
+    plt.pcolormesh(t, bins, saliences, shading='gouraud', cmap='hot')
     plt.title('Salience')
     plt.ylabel('frequency (bins)')
     plt.xlabel('time (s)')
-    plt.savefig('./output/salience', dpi=1024)
+    plt.savefig('./output/salience', dpi=128)
 
 
 def compute_saliences(f, t, zxx, n_workers, sampling_rate, t_seconds=10):
