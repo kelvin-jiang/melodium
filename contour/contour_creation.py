@@ -113,6 +113,7 @@ def plot_contours(contours, t_unit):
 def contour_creation(sampling_rate):
     saliences = np.load('./data/salamon-salience-10s.npy')
     t_size = saliences.shape[1]
+    # get S+, S-, and a max-heap of salience in S+
     high, low, hq = filter_saliences(saliences)
 
     contours = np.zeros((n_bins, t_size))
