@@ -24,13 +24,7 @@ min_freq = 55
 max_freq = 1760
 
 
-harmonic_weights = []
-
-
-def compute_harmonic_weight():
-    harmonic_weights.append(1)
-    for i in range(1, n_harmonics):
-        harmonic_weights.append(harmonic_weights[i-1] * harmonic_weight)
+harmonic_weights = [harmonic_weight ** i for i in range(n_harmonics)]
 
 
 def get_bin_index(freq):
@@ -131,9 +125,6 @@ def compute_saliences(f, t, zxx, n_workers, sampling_rate, t_seconds=10):
     # number of time samples (frames) in t_seconds (using ceil)
     t_size = -(-t_seconds * sampling_rate) // H
     saliences = np.zeros((n_bins, t_size))
-
-    # pre-compute harmonic weight
-    compute_harmonic_weight()
 
     # use multiprocessing to compute salience
     pool = mp.Pool(processes=n_workers)
