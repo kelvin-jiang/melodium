@@ -1,18 +1,17 @@
 import argparse
 
-from sinusoid_extraction import spectral_transform
+from sinusoid_extraction import equal_loudness_filter, spectral_transform
 from salience import compute_saliences
 from utils import load_wav_file, write_wav_file
 
-
 def extract_melody(audio, sampling_rate, n_workers):
     # sinusoid extraction
-    # TODO: equal loudness filter
-    f, t, zxx = spectral_transform(audio, sampling_rate)
+    audio = equal_loudness_filter(audio)
+    f, t, Zxx = spectral_transform(audio, sampling_rate)
     # TODO: frequency correction
 
     # compute saliences
-    compute_saliences(f, t, zxx, n_workers, sampling_rate)
+    compute_saliences(f, t, Zxx, n_workers, sampling_rate)
 
     # pitch contour creation
     # TODO: peak filtering
@@ -25,7 +24,6 @@ def extract_melody(audio, sampling_rate, n_workers):
     # TODO: melody peak selection
     return 'mELodY'
 
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', required=True)
@@ -36,7 +34,6 @@ def main():
     sampling_rate, audio = load_wav_file(args.input)
     melody = extract_melody(audio, sampling_rate, args.workers)
     # write_wav_file(melody, args.output, sampling_rate)
-
 
 if __name__ == '__main__':
     main()
