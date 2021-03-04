@@ -21,7 +21,7 @@ def filter_saliences(saliences):
     accum = []
     # stage 1
     for i in range(t_size):
-        salience = saliences[:, 0]
+        salience = saliences[:, i]
         salience_peaks, _ = find_peaks(salience)
         max_salience = np.max(salience[salience_peaks])
         for b in salience_peaks:
