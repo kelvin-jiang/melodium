@@ -185,17 +185,14 @@ def create_contours(saliences, sampling_rate):
         contours.append(contour)
 
     print(f'{len(contours)} contours')
-    return space, len(contours)
+    return contours, space, len(contours)
 
 
 def main():
     sampling_rate = 44100
-    saliences = np.load('./data/salamon-salience-10s-elf.npy')
-    space, count = create_contours(saliences, sampling_rate)
-    plot_contours(space, H / sampling_rate, './output/salamon-contours-10s-elf', f'Contours with ELF ({count} total)')
-    saliences = np.load('./data/salamon-salience-10s.npy')
-    space, count = create_contours(saliences, sampling_rate)
-    plot_contours(space, H / sampling_rate, './output/salamon-contours-10s', f'Contours ({count} total)')
+    saliences = np.load('./output/salience.npy')
+    _, space, count = create_contours(saliences, sampling_rate)
+    plot_contours(space, H / sampling_rate, './output/contours', f'Contours with ELF ({count} total)')
 
 
 if __name__ == '__main__':

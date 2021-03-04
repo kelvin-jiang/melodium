@@ -1,8 +1,9 @@
 import argparse
 
-from sinusoid_extraction import equal_loudness_filter, spectral_transform
+from sinusoid_extraction import equal_loudness_filter, spectral_transform, H
 from salience import compute_saliences
 from utils import load_wav_file, write_wav_file
+from contour import create_contours, plot_contours
 
 def extract_melody(audio, sampling_rate, n_workers):
     # sinusoid extraction
@@ -11,12 +12,11 @@ def extract_melody(audio, sampling_rate, n_workers):
     # TODO: frequency correction
 
     # compute saliences
-    compute_saliences(f, t, Zxx, n_workers, sampling_rate)
+    saliences = compute_saliences(f, t, Zxx, n_workers, sampling_rate)
 
     # pitch contour creation
-    # TODO: peak filtering
-    # TODO: peak streaming
-    # TODO: pitch contour characterization
+    contours, space, count = create_contours(saliences, sampling_rate)
+    plot_contours(space, H / sampling_rate, './output/contours', f'Contours with ELF ({count} total)')
 
     # melody selection
     # TODO: voicing detection

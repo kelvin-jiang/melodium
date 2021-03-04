@@ -124,23 +124,20 @@ def compute_saliences(f, t, zxx, n_workers, sampling_rate, t_seconds=10):
     zxx = np.abs(zxx)
     # number of time samples (frames) in t_seconds (using ceil)
     t_size = -(-t_seconds * sampling_rate) // H
-    # saliences = np.zeros((n_bins, t_size))
-    #
-    # # use multiprocessing to compute salience
-    # pool = mp.Pool(processes=n_workers)
-    # jobs = [(zxx[:, i], f, i) for i in range(t_size)]
-    # results = pool.starmap(compute_salience, jobs)
-    # pool.close()
-    # pool.join()
-    #
-    # for i, salience in results:
-    #     saliences[:, i] = salience
+    saliences = np.zeros((n_bins, t_size))
 
-    # print(f'salience done: {time.time() - start_time : .2f}s')
+    # use multiprocessing to compute salience
+    pool = mp.Pool(processes=n_workers)
+    jobs = [(zxx[:, i], f, i) for i in range(t_size)]
+    results = pool.starmap(compute_salience, jobs)
+    pool.close()
+    pool.join()
 
-    saliences = np.load('./data/salamon-salience-10s.npy')
-    plot_saliences(t[:t_size], saliences, './output/salamon-salience-10s', 'Salience')
-    saliences = np.load('./data/salamon-salience-10s-elf.npy')
-    plot_saliences(t[:t_size], saliences, './output/salamon-salience-10s-elf', 'Salience with ELF')
+    for i, salience in results:
+        saliences[:, i] = salience
 
-    # np.save('./output/salience', saliences)
+    print(f'salience done: {time.time() - start_time : .2f}s')
+    plot_saliences(t[:t_size], saliences, './output/salience', 'Salience')
+
+    np.save('./output/salience', saliences)
+    return saliences
