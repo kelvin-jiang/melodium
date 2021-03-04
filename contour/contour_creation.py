@@ -157,7 +157,8 @@ def create_contours(saliences, sampling_rate):
         if b not in high[i]:
             # skip if this salience is removed from high
             continue
-        # add to contours
+        # remove from high
+        high[i].remove(b)
         space[b, i] = 1
 
         # track forward in time
