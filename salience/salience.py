@@ -106,15 +106,15 @@ def compute_salience(magnitudes, f, i):
     return i, salience
 
 
-def plot_saliences(t, saliences):
+def plot_saliences(t, saliences, filename, title):
     bins = np.arange(n_bins)
     # take the middle frequency in each bin
     # frequencies = 55 * (2 ** ((10 * bins + 5)/1200))
     plt.pcolormesh(t, bins, saliences, shading='gouraud', cmap='hot')
-    plt.title('Salience')
+    plt.title(title)
     plt.ylabel('frequency (bins)')
     plt.xlabel('time (s)')
-    plt.savefig('./output/salience', dpi=128)
+    plt.savefig(filename, dpi=128)
 
 
 def compute_saliences(f, t, zxx, n_workers, sampling_rate, t_seconds=10):
@@ -124,18 +124,23 @@ def compute_saliences(f, t, zxx, n_workers, sampling_rate, t_seconds=10):
     zxx = np.abs(zxx)
     # number of time samples (frames) in t_seconds (using ceil)
     t_size = -(-t_seconds * sampling_rate) // H
-    saliences = np.zeros((n_bins, t_size))
+    # saliences = np.zeros((n_bins, t_size))
+    #
+    # # use multiprocessing to compute salience
+    # pool = mp.Pool(processes=n_workers)
+    # jobs = [(zxx[:, i], f, i) for i in range(t_size)]
+    # results = pool.starmap(compute_salience, jobs)
+    # pool.close()
+    # pool.join()
+    #
+    # for i, salience in results:
+    #     saliences[:, i] = salience
 
-    # use multiprocessing to compute salience
-    pool = mp.Pool(processes=n_workers)
-    jobs = [(zxx[:, i], f, i) for i in range(t_size)]
-    results = pool.starmap(compute_salience, jobs)
-    pool.close()
-    pool.join()
+    # print(f'salience done: {time.time() - start_time : .2f}s')
 
-    for i, salience in results:
-        saliences[:, i] = salience
+    saliences = np.load('./data/salamon-salience-10s.npy')
+    plot_saliences(t[:t_size], saliences, './output/salamon-salience-10s', 'Salience')
+    saliences = np.load('./data/salamon-salience-10s-elf.npy')
+    plot_saliences(t[:t_size], saliences, './output/salamon-salience-10s-elf', 'Salience with ELF')
 
-    print(f'salience done: {time.time() - start_time : .2f}s')
-    plot_saliences(t[:t_size], saliences)
-    np.save('./output/salience', saliences)
+    # np.save('./output/salience', saliences)

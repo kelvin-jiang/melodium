@@ -132,20 +132,19 @@ def track_salience(space, high, low, b_start, t_start, step, sampling_rate):
     return contour
 
 
-def plot_contours(space, t_unit):
+def plot_contours(space, t_unit, filename, title):
     t_size = space.shape[1]
-    tt = np.arange(t_size).astype(np.float)
-    # tt = tt * t_unit
+    tt = np.arange(t_size).astype(np.float64)
+    tt = tt * t_unit
     bins = np.arange(n_bins)
-    plt.pcolormesh(tt, bins, space, shading='gouraud', cmap='binary')
-    plt.title('Contours')
+    plt.pcolormesh(tt, bins, space, shading='nearest', cmap='binary')
+    plt.title(title)
     plt.ylabel('frequency (bins)')
     plt.xlabel('time (s)')
-    plt.savefig('./output/contours', dpi=1024)
+    plt.savefig(filename, dpi=256)
 
 
-def contour_creation(sampling_rate):
-    saliences = np.load('./data/salamon-salience-10s-elf.npy')
+def create_contours(saliences, sampling_rate):
     t_size = saliences.shape[1]
     # get S+, S-, and a max-heap of salience in S+
     high, low, hq = filter_saliences(saliences)
@@ -185,8 +184,18 @@ def contour_creation(sampling_rate):
         contours.append(contour)
 
     print(f'{len(contours)} contours')
-    plot_contours(space, H / sampling_rate)
+    return space, len(contours)
+
+
+def main():
+    sampling_rate = 44100
+    saliences = np.load('./data/salamon-salience-10s-elf.npy')
+    space, count = create_contours(saliences, sampling_rate)
+    plot_contours(space, H / sampling_rate, './output/salamon-contours-10s-elf', f'Contours with ELF ({count} total)')
+    saliences = np.load('./data/salamon-salience-10s.npy')
+    space, count = create_contours(saliences, sampling_rate)
+    plot_contours(space, H / sampling_rate, './output/salamon-contours-10s', f'Contours ({count} total)')
 
 
 if __name__ == '__main__':
-    contour_creation(44100)
+    main()
