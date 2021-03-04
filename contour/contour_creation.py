@@ -4,14 +4,34 @@ from heapq import *
 # from sinusoid_extraction.spectral_transform import H    # hop size
 # from salience import n_bins
 import matplotlib.pyplot as plt
-
+from scipy import fft
 
 H = 128
 n_bins = 600
-peak_threshold = 0.9    # tau+
-dev_degree = 0.9    # tau_sigma
+peak_threshold = 0.9  # tau+
+dev_degree = 0.9  # tau_sigma
 pitch_cont_threshold = 80
 max_gap = 0.1
+
+
+class Contour:
+    def __init__(self, t_start, peaks, saliences, sampling_frequency):
+        self.t_start = t_start
+        self.peaks = np.array(peaks)
+        self.saliences = np.array(saliences)
+        self.sampling_frequency = sampling_frequency
+
+        # compute characteristics
+        self.pitch_mean = np.mean(self.peaks)
+        self.pitch_deviation = np.std(self.peaks)
+        self.salience_mean = np.mean(self.saliences)
+        self.salience_total = np.sum(self.saliences)
+        self.salience_deviation = np.std(self.saliences)
+        self.length = len(self.peaks)
+        self.vibrato = self.has_vibrato()
+
+    def has_vibrato(self):
+        return False
 
 
 def filter_saliences(saliences):
@@ -54,14 +74,22 @@ def filter_saliences(saliences):
 
 
 def find_connecting_peak(i, peaks, b_target):
-    for _, b in enumerate(peaks[i]):
-        if abs(b - b_target) * 10 < 80:
-            return b
+    # find peak closest to b_target
+    if b_target in peaks[i]:
+        return b_target
+    # max dist in number of bins
+    max_dist = pitch_cont_threshold // 10
+    for dist in range(1, max_dist + 1):
+        for sign in [1, -1]:
+            b = b_target + sign * dist
+            if b in peaks[i]:
+                return b
     return None
 
 
-def track_salience(contours, high, low, b_start, t_start, step, sampling_rate):
-    t_size = contours.shape[1]
+def track_salience(space, high, low, b_start, t_start, step, sampling_rate):
+    contour = []
+    t_size = space.shape[1]
     t = t_start
     t_last_high = t_start
     b_prev = b_start
@@ -83,7 +111,8 @@ def track_salience(contours, high, low, b_start, t_start, step, sampling_rate):
         if b_high is not None:
             # if peak found in high, remove from high and add to contours
             b_prev = b_high
-            contours[b_prev, t] = 1
+            space[b_prev, t] = 1
+            contour.append(b_prev)
             high[t].remove(b_prev)
             t_last_high = t
             continue
@@ -92,18 +121,23 @@ def track_salience(contours, high, low, b_start, t_start, step, sampling_rate):
         b_prev = find_connecting_peak(t, low, b_prev)
         if b_prev is not None:
             # if peak found in low, remove from high and add to contours
-            contours[b_prev, t] = 1
+            space[b_prev, t] = 1
+            contour.append(b_prev)
             low[t].remove(b_prev)
             continue
+
+        # end if cannot find connecting peak
         break
 
+    return contour
 
-def plot_contours(contours, t_unit):
-    t_size = contours.shape[1]
+
+def plot_contours(space, t_unit):
+    t_size = space.shape[1]
     tt = np.arange(t_size).astype(np.float)
-    tt = tt * (H / t_unit)
+    # tt = tt * t_unit
     bins = np.arange(n_bins)
-    plt.pcolormesh(tt, bins, contours, shading='gouraud', cmap='binary')
+    plt.pcolormesh(tt, bins, space, shading='gouraud', cmap='binary')
     plt.title('Contours')
     plt.ylabel('frequency (bins)')
     plt.xlabel('time (s)')
@@ -116,7 +150,8 @@ def contour_creation(sampling_rate):
     # get S+, S-, and a max-heap of salience in S+
     high, low, hq = filter_saliences(saliences)
 
-    contours = np.zeros((n_bins, t_size))
+    space = np.zeros((n_bins, t_size))
+    contours = []
     while len(hq) > 0:
         start = heappop(hq)
         i, b = start[1], start[2]
@@ -124,22 +159,32 @@ def contour_creation(sampling_rate):
             # skip if this salience is removed from high
             continue
         # add to contours
-        contours[b, i] = 1
+        space[b, i] = 1
 
         # track forward in time
-        track_salience(
-            contours=contours, high=high, low=low,
+        right_contour = track_salience(
+            space=space, high=high, low=low,
             b_start=b, t_start=i, step=1,
             sampling_rate=sampling_rate
         )
 
         # track backwards in time
-        track_salience(
-            contours=contours, high=high, low=low,
+        left_contour = track_salience(
+            space=space, high=high, low=low,
             b_start=b, t_start=i, step=-1,
             sampling_rate=sampling_rate
         )
-    plot_contours(contours, H / sampling_rate)
+
+        contour_peaks = left_contour[::-1] + [b] + right_contour
+        t_start = i - len(left_contour)
+        contour_saliences = [
+            saliences[contour_peaks[i], t_start + i]
+            for i in range(len(contour_peaks))
+        ]
+        contour = Contour(t_start, contour_peaks, contour_saliences, sampling_rate / H)
+        contours.append(contour)
+
+    # plot_contours(space, H / sampling_rate)
 
 
 if __name__ == '__main__':
