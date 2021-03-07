@@ -1,6 +1,6 @@
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy import signal
-import matplotlib.pyplot as plt
 
 fs = 44100
 
@@ -31,7 +31,7 @@ def plot_filter_response(filter, output_file):
     plt.ylabel('Amplitude (dB)')
     plt.margins(0, 0.1)
     plt.grid(which='both', axis='both')
-    plt.savefig(output_file, dpi=240)
+    plt.savefig(output_file, dpi=128)
 
 if __name__ == '__main__':
     # plot frequency response of filters

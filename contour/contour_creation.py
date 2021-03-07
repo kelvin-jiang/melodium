@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.signal import find_peaks
 from heapq import *
-# from sinusoid_extraction.spectral_transform import H    # hop size
+# from spectral.spectral_transform import H    # hop size
 # from salience import n_bins
 import matplotlib.pyplot as plt
 from scipy import fft

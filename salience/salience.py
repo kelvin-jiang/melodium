@@ -6,7 +6,7 @@ import time
 import multiprocessing as mp
 import math
 
-from sinusoid_extraction import H  # hop size
+from spectral import H  # hop size
 
 # number of quantization bins for F0 candidates
 n_bins = 600
