@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 from scipy.signal import find_peaks
 import time
 import multiprocessing as mp
-from sinusoid_extraction import H   # hop size
 import math
 
+from sinusoid_extraction import H  # hop size
 
 # number of quantization bins for F0 candidates
 n_bins = 600
@@ -23,22 +23,18 @@ max_magnitude_diff = 40
 min_freq = 55
 max_freq = 1760
 
-
-harmonic_weights = [harmonic_weight ** i for i in range(n_harmonics)]
-
+harmonic_weights = [harmonic_weight**i for i in range(n_harmonics)]
 
 def get_bin_index(freq):
     """
     :param freq: frequency from 55Hz to 1759Hz
     :return: the quantized bin number [0,599]
     """
-    return (1200 * math.log2(freq/55)) // 10
-
+    return (1200 * math.log2(freq / 55)) // 10
 
 def magnitude_threshold(magnitude, max_magnitude):
     db_diff = 20 * math.log10(max_magnitude / magnitude)
     return 1 if db_diff < max_magnitude_diff else 0
-
 
 def weighting_function(b, h, b_f0):
     # distance in semitones between harmonic frequency and center frequency of bin b
@@ -46,8 +42,7 @@ def weighting_function(b, h, b_f0):
     if d_semitones > 1:
         return 0
     weight = math.cos(d_semitones * math.pi / 2)
-    return weight * weight * harmonic_weights[h-1]
-
+    return weight * weight * harmonic_weights[h - 1]
 
 def salience_function(b, f, peaks, max_magnitude):
     """
@@ -89,7 +84,6 @@ def salience_function(b, f, peaks, max_magnitude):
 
     return salience
 
-
 def compute_salience(magnitudes, f, i):
     start_time = time.time()
     # find peaks
@@ -105,7 +99,6 @@ def compute_salience(magnitudes, f, i):
     print(f'frame {i}: {time.time() - start_time : .2f}s')
     return i, salience
 
-
 def plot_saliences(t, saliences, filename, title):
     bins = np.arange(n_bins)
     # take the middle frequency in each bin
@@ -116,19 +109,18 @@ def plot_saliences(t, saliences, filename, title):
     plt.xlabel('time (s)')
     plt.savefig(filename, dpi=128)
 
-
-def compute_saliences(f, t, zxx, n_workers, sampling_rate, t_seconds=10):
+def compute_saliences(f, t, Zxx, n_workers, fs, t_seconds=10):
     start_time = time.time()
 
     # take only magnitudes
-    zxx = np.abs(zxx)
+    Zxx = np.abs(Zxx)
     # number of time samples (frames) in t_seconds (using ceil)
-    t_size = -(-t_seconds * sampling_rate) // H
+    t_size = -(-t_seconds * fs) // H
     saliences = np.zeros((n_bins, t_size))
 
     # use multiprocessing to compute salience
     pool = mp.Pool(processes=n_workers)
-    jobs = [(zxx[:, i], f, i) for i in range(t_size)]
+    jobs = [(Zxx[:, i], f, i) for i in range(t_size)]
     results = pool.starmap(compute_salience, jobs)
     pool.close()
     pool.join()

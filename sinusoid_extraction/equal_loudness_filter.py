@@ -25,6 +25,7 @@ def equal_loudness_filter(audio):
 
 def plot_filter_response(filter, output_file):
     w, h = signal.sosfreqz(filter, fs=fs)
+    plt.clf()
     plt.semilogx(w, 20 * np.log10(np.abs(h)))
     plt.xlabel('Frequency (hz)')
     plt.ylabel('Amplitude (dB)')
