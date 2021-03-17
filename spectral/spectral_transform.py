@@ -5,27 +5,16 @@ from scipy.signal import find_peaks, stft
 
 from utils import load_wav_file
 
-M = 2048  # window length
-H = 128  # hop size
-N = 8192  # FFT length
+window_length = 2048  # M in paper
+hop_size = 128  # H in paper
+fft_length = 8192  # N in paper
 
 def spectral_transform(audio, fs):
-    f, t, Zxx = stft(audio, fs, nperseg=M, noverlap=M - H, nfft=N)
+    f, t, Zxx = stft(audio, fs, nperseg=window_length, noverlap=window_length - hop_size, nfft=fft_length)
 
     return f, t, Zxx
 
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--input_audio_file', required=True)
-    parser.add_argument('--t_seconds', type=int, default=10)
-    parser.add_argument('--f_freqs', type=int, default=2000)
-    parser.add_argument('--output_spectrogram_file', required=True)
-    args = parser.parse_args()
-
-    fs, audio = load_wav_file(args.input_audio_file, merge_channels=True)
-
-    f, t, Zxx = spectral_transform(audio, fs)
-
+def plot_spectral_transform(f, t, Zxx, fs, filename, t_seconds=10, f_freqs=2000):
     # peak finding (for each time window)
     for i in range(Zxx.shape[1]):
         peaks, _ = find_peaks(np.abs(Zxx[:, i]))
@@ -35,11 +24,21 @@ def main():
     # apply sign function on magnitudes to make peaks visible
     Zxx = np.sign(np.abs(Zxx))
 
-    t_size = -(-args.t_seconds * fs) // H
-    f_freqs = -(-args.f_freqs * N) // fs
-
+    t_size = -(-t_seconds * fs) // hop_size
+    f_freqs = -(-f_freqs * fft_length) // fs
     plt.pcolormesh(t[:t_size], f[:f_freqs], Zxx[:f_freqs, :t_size], cmap='binary', shading='gouraud')
-    plt.savefig(args.output_spectrogram_file, dpi=128)
+    plt.savefig(filename, dpi=128)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', required=True)
+    parser.add_argument('--output', default='./output/spectral')
+    args = parser.parse_args()
+
+    fs, audio = load_wav_file(args.input, merge_channels=True)
+
+    f, t, Zxx = spectral_transform(audio, fs)
+    plot_spectral_transform(f, t, Zxx, fs, args.output)
 
 if __name__ == '__main__':
     main()

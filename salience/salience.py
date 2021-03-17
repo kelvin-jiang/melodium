@@ -1,12 +1,14 @@
-import sys
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.signal import find_peaks
-import time
-import multiprocessing as mp
+import argparse
 import math
+import matplotlib.pyplot as plt
+import multiprocessing as mp
+import numpy as np
+from scipy.signal import find_peaks
+import sys
+import time
 
-from spectral import H  # hop size
+from spectral import equal_loudness_filter, hop_size, spectral_transform
+from utils import load_wav_file
 
 # number of quantization bins for F0 candidates
 n_bins = 600
@@ -17,7 +19,7 @@ harmonic_weight = 0.8
 # magnitude compression parameter (beta in paper)
 # magnitude_compression = 1
 # maximum allowed difference (in dB) between a magnitude
-# and the and the magnitude of the highest peak (gamma in paper)
+# and the magnitude of the highest peak (gamma in paper)
 max_magnitude_diff = 40
 # quantization range in hz
 min_freq = 55
@@ -75,8 +77,7 @@ def salience_function(b, f, peaks, max_magnitude):
                 # stop early, because later frequencies will be too large
                 break
             if weighting > 0 and not has_weight:
-                # save the smallest activated frequency in this iteration
-                # for optimization purposes
+                # save the smallest activated frequency in this iteration for optimization purposes
                 has_weight = True
                 first_freq_ind = i
             mag_threshold = magnitude_threshold(magnitude, max_magnitude)
@@ -84,7 +85,7 @@ def salience_function(b, f, peaks, max_magnitude):
 
     return salience
 
-def compute_salience(magnitudes, f, i):
+def compute_frame_salience(magnitudes, f, i):
     start_time = time.time()
     # find peaks
     peak_indices, _ = find_peaks(magnitudes)
@@ -99,29 +100,20 @@ def compute_salience(magnitudes, f, i):
     print(f'frame {i}: {time.time() - start_time : .2f}s')
     return i, salience
 
-def plot_saliences(t, saliences, filename, title):
-    bins = np.arange(n_bins)
-    # take the middle frequency in each bin
-    # frequencies = 55 * (2 ** ((10 * bins + 5)/1200))
-    plt.pcolormesh(t, bins, saliences, shading='gouraud', cmap='hot')
-    plt.title(title)
-    plt.ylabel('frequency (bins)')
-    plt.xlabel('time (s)')
-    plt.savefig(filename, dpi=128)
-
-def compute_saliences(f, t, Zxx, n_workers, fs, t_seconds=10):
+def compute_saliences(f, t, Zxx, n_workers, fs, cached_saliences, t_seconds=10):
     start_time = time.time()
 
     # take only magnitudes
     Zxx = np.abs(Zxx)
+
     # number of time samples (frames) in t_seconds (using ceil)
-    t_size = -(-t_seconds * fs) // H
+    t_size = -(-t_seconds * fs) // hop_size
     saliences = np.zeros((n_bins, t_size))
 
     # use multiprocessing to compute salience
     pool = mp.Pool(processes=n_workers)
     jobs = [(Zxx[:, i], f, i) for i in range(t_size)]
-    results = pool.starmap(compute_salience, jobs)
+    results = pool.starmap(compute_frame_salience, jobs)
     pool.close()
     pool.join()
 
@@ -129,7 +121,36 @@ def compute_saliences(f, t, Zxx, n_workers, fs, t_seconds=10):
         saliences[:, i] = salience
 
     print(f'salience done: {time.time() - start_time : .2f}s')
-    plot_saliences(t[:t_size], saliences, './output/salience', 'Salience')
 
-    np.save('./output/salience', saliences)
+    np.save(cached_saliences, saliences)
+
     return saliences
+
+def plot_saliences(t, saliences, fs, filename, t_seconds=10):
+    bins = np.arange(n_bins)
+    # take the middle frequency in each bin
+    # frequencies = 55 * (2 ** ((10 * bins + 5)/1200))
+    t_size = -(-t_seconds * fs) // hop_size
+    plt.pcolormesh(t[:t_size], bins, saliences, shading='gouraud', cmap='hot')
+    plt.title('Salience')
+    plt.ylabel('frequency (bins)')
+    plt.xlabel('time (s)')
+    plt.savefig(filename, dpi=128)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--input', required=True)
+    parser.add_argument('--output', default='./output/salience.npy')
+    parser.add_argument('--workers', type=int, default=1)
+    args = parser.parse_args()
+
+    fs, audio = load_wav_file(args.input, merge_channels=True)
+
+    audio = equal_loudness_filter(audio)
+    f, t, Zxx = spectral_transform(audio, fs)
+
+    saliences = compute_saliences(f, t, Zxx, args.workers, fs, args.output)
+    plot_saliences(t, saliences, fs, './output/salience')
+
+if __name__ == '__main__':
+    main()

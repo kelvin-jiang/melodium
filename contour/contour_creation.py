@@ -1,18 +1,15 @@
+from heapq import heapify, heappop
+import matplotlib.pyplot as plt
 import numpy as np
 from scipy.signal import find_peaks
-from heapq import *
-# from spectral.spectral_transform import H    # hop size
-# from salience import n_bins
-import matplotlib.pyplot as plt
-from scipy import fft
 
-H = 128
-n_bins = 600
-peak_threshold = 0.9  # tau+
-dev_degree = 0.9  # tau_sigma
+from spectral import hop_size
+from salience import n_bins
+
+peak_threshold = 0.9  # tau+ in paper
+dev_degree = 0.9  # tau_sigma in paper
 pitch_cont_threshold = 80
 max_gap = 0.1
-
 
 class Contour:
     def __init__(self, t_start, peaks, saliences, sampling_frequency):
@@ -33,12 +30,12 @@ class Contour:
     def has_vibrato(self):
         return False
 
-
 def filter_saliences(saliences):
     t_size = saliences.shape[1]
     high, low = [set([]) for _ in range(t_size)], [set([]) for _ in range(t_size)]
     # contains all peak salience
     accum = []
+
     # stage 1
     for i in range(t_size):
         salience = saliences[:, i]
@@ -72,7 +69,6 @@ def filter_saliences(saliences):
     heapify(hq)
     return high, low, hq
 
-
 def find_connecting_peak(i, peaks, b_target):
     # find peak closest to b_target
     if b_target in peaks[i]:
@@ -86,8 +82,7 @@ def find_connecting_peak(i, peaks, b_target):
                 return b
     return None
 
-
-def track_salience(space, high, low, b_start, t_start, step, sampling_rate):
+def track_salience(space, high, low, b_start, t_start, step, fs):
     contour = []
     t_size = space.shape[1]
     t = t_start
@@ -100,7 +95,7 @@ def track_salience(space, high, low, b_start, t_start, step, sampling_rate):
             break
 
         # check gap
-        t_unit = H / sampling_rate
+        t_unit = hop_size / fs
         gap = abs(t - t_last_high) * t_unit
         if gap > max_gap:
             # stop tracking
@@ -131,22 +126,9 @@ def track_salience(space, high, low, b_start, t_start, step, sampling_rate):
 
     return contour
 
-
-def plot_contours(space, t_unit, filename, title):
-    t_size = space.shape[1]
-    tt = np.arange(t_size).astype(np.float64)
-    tt = tt * t_unit
-    bins = np.arange(n_bins)
-    plt.pcolormesh(tt, bins, space, shading='nearest', cmap='binary')
-    plt.title(title)
-    plt.ylabel('frequency (bins)')
-    plt.xlabel('time (s)')
-    plt.savefig(filename, dpi=128)
-
-
-def create_contours(saliences, sampling_rate):
+def create_contours(saliences, fs):
     t_size = saliences.shape[1]
-    # get S+, S-, and a max-heap of salience in S+
+    # get S+, S-, and a max-heap of saliences in S+
     high, low, hq = filter_saliences(saliences)
 
     space = np.zeros((n_bins, t_size))
@@ -162,38 +144,34 @@ def create_contours(saliences, sampling_rate):
         space[b, i] = 1
 
         # track forward in time
-        right_contour = track_salience(
-            space=space, high=high, low=low,
-            b_start=b, t_start=i, step=1,
-            sampling_rate=sampling_rate
-        )
+        right_contour = track_salience(space=space, high=high, low=low, b_start=b, t_start=i, step=1, fs=fs)
 
         # track backwards in time
-        left_contour = track_salience(
-            space=space, high=high, low=low,
-            b_start=b, t_start=i, step=-1,
-            sampling_rate=sampling_rate
-        )
+        left_contour = track_salience(space=space, high=high, low=low, b_start=b, t_start=i, step=-1, fs=fs)
 
         contour_peaks = left_contour[::-1] + [b] + right_contour
         t_start = i - len(left_contour)
-        contour_saliences = [
-            saliences[contour_peaks[i], t_start + i]
-            for i in range(len(contour_peaks))
-        ]
-        contour = Contour(t_start, contour_peaks, contour_saliences, sampling_rate / H)
+        contour_saliences = [saliences[contour_peaks[i], t_start + i] for i in range(len(contour_peaks))]
+        contour = Contour(t_start, contour_peaks, contour_saliences, fs / hop_size)
         contours.append(contour)
 
-    print(f'{len(contours)} contours')
-    return contours, space, len(contours)
+    print(f'created {len(contours)} contours')
+    return contours, space
 
+def plot_contours(space, fs, n_contours, filename):
+    tt = np.arange(space.shape[1]).astype(np.float64) * (hop_size / fs)
+    bins = np.arange(n_bins)
+    plt.pcolormesh(tt, bins, space, shading='nearest', cmap='binary')
+    plt.title(f'Contours with ELF ({n_contours} total)')
+    plt.ylabel('frequency (bins)')
+    plt.xlabel('time (s)')
+    plt.savefig(filename, dpi=128)
 
 def main():
-    sampling_rate = 44100
+    fs = 44100
     saliences = np.load('./output/salience.npy')
-    _, space, count = create_contours(saliences, sampling_rate)
-    plot_contours(space, H / sampling_rate, './output/contours', f'Contours with ELF ({count} total)')
-
+    contours, space = create_contours(saliences, fs)
+    plot_contours(space, fs, len(contours), './output/contours')
 
 if __name__ == '__main__':
     main()
