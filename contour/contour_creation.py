@@ -112,7 +112,7 @@ def track_salience(space, high, low, b_start, t_start, step, fs):
             t_last_high = t
             continue
 
-        # try to find ocnnecting peak from low
+        # try to find connecting peak from low
         b_prev = find_connecting_peak(t, low, b_prev)
         if b_prev is not None:
             # if peak found in low, remove from high and add to contours
@@ -162,7 +162,7 @@ def plot_contours(space, fs, n_contours, filename):
     tt = np.arange(space.shape[1]).astype(np.float64) * (hop_size / fs)
     bins = np.arange(n_bins)
     plt.pcolormesh(tt, bins, space, shading='nearest', cmap='binary')
-    plt.title(f'Contours with ELF ({n_contours} total)')
+    plt.title(f'Contours ({n_contours} total)')
     plt.ylabel('frequency (bins)')
     plt.xlabel('time (s)')
     plt.savefig(filename, dpi=128)

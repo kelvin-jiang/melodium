@@ -22,7 +22,7 @@ def extract_melody(audio, fs, args):
     plot_saliences(t, saliences, fs, args.salience_plot)
 
     # pitch contour creation
-    contours, space, count = create_contours(saliences, fs)
+    contours, space = create_contours(saliences, fs)
     plot_contours(space, fs, len(contours), args.contour_plot)
 
     # melody selection
