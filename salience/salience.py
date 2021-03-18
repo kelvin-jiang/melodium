@@ -54,7 +54,7 @@ def salience_function(b, f, peaks, max_magnitude):
     :return: salience for freq
     """
     if f.shape[0] != peaks.shape[0]:
-        print("error: f and peaks have mismatched length")
+        print('error: f and peaks have mismatched length')
         sys.exit(1)
 
     salience = 0.0
@@ -133,8 +133,8 @@ def plot_saliences(t, saliences, fs, filename, t_seconds=10):
     t_size = -(-t_seconds * fs) // hop_size
     plt.pcolormesh(t[:t_size], bins, saliences, shading='gouraud', cmap='hot')
     plt.title('Salience')
-    plt.ylabel('frequency (bins)')
     plt.xlabel('time (s)')
+    plt.ylabel('frequency (bins)')
     plt.savefig(filename, dpi=128)
 
 def main():
