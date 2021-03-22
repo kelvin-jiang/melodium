@@ -10,18 +10,13 @@ import time
 from spectral import equal_loudness_filter, hop_size, spectral_transform
 from utils import load_wav_file
 
-# number of quantization bins for F0 candidates
-n_bins = 600
-# number of harmonics considered (N_h in paper)
-n_harmonics = 20
-# harmonic weighting parameter (alpha in paper)
-harmonic_weight = 0.8
-# magnitude compression parameter (beta in paper)
-# magnitude_compression = 1
-# maximum allowed difference (in dB) between a magnitude
-# and the magnitude of the highest peak (gamma in paper)
-max_magnitude_diff = 40
-# quantization range in hz
+n_bins = 600  # number of quantization bins for F0 candidates
+n_harmonics = 20  # number of harmonics considered (N_h in paper)
+harmonic_weight = 0.8  # harmonic weighting parameter (alpha in paper)
+# magnitude_compression = 1  # magnitude compression parameter (beta in paper)
+max_magnitude_diff = 40  # maximum difference (in dB) between a magnitude and magnitude of highest peak (gamma in paper)
+
+# quantization range in Hz
 min_freq = 55
 max_freq = 1760
 

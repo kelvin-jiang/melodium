@@ -35,13 +35,14 @@ def compute_melody_pitch_mean(contours, t_size, fs):
 
     # set indices where contours are not present to 1 to avoid dividing by zero
     melody_pitch_contours[melody_pitch_contours == 0] = 1
+
     melody_pitch_mean /= melody_pitch_contours
 
-    # smooth melody pitch mean with sliding mean filter
+    # apply smoothing to melody pitch mean with sliding mean filter
     smoothed_melody_pitch_mean = np.zeros(t_size)
     filter_size = int(sliding_mean_filter_size // (hop_size / fs))
     for i in range(t_size):
-        # end - start != filter_size exactly since integer division, but will not be off by much
+        # note that end - start != filter_size since integer division, but will not be off by much
         start = max(i - filter_size // 2, 0)
         end = i + filter_size // 2
         window = melody_pitch_mean[start:end]
@@ -73,7 +74,6 @@ def remove_octave_errors(contours, t_size, fs):
         melody_pitch_mean = compute_melody_pitch_mean(filtered_contours, t_size, fs)
 
         # detect octave errors (consider all input contours)
-        filtered_contours.clear()
         filtered = set()
         for i in range(len(contours)):
             if i in filtered:
@@ -95,7 +95,6 @@ def remove_octave_errors(contours, t_size, fs):
                     else:
                         filtered.add(j)
                     break
-
         filtered_contours = [contour for i, contour in enumerate(contours) if i not in filtered]
 
         # re-compute melody pitch mean
@@ -116,6 +115,7 @@ def select_melody(contours, t_size, fs):
 
     contours = detect_voicing(contours)
     contours = remove_octave_errors(contours, t_size, fs)
+    print(f'selected {len(contours)} melody contours')
 
     # determine melody
     melody_saliences = np.zeros(t_size)
