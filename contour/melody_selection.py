@@ -1,3 +1,4 @@
+from heapq import heappop, heappush
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -74,27 +75,28 @@ def remove_octave_errors(contours, t_size, fs):
         melody_pitch_mean = compute_melody_pitch_mean(filtered_contours, t_size, fs)
 
         # detect octave errors (consider all input contours)
-        filtered = set()
+        hq = []
         for i in range(len(contours)):
-            if i in filtered:
-                # already filtered out previously
-                continue
-
             for j in range(i + 1, len(contours)):
                 i_end = contours[i].t_start + len(contours[i].bins)
-                if i_end <= contours[j].t_start:
-                    # break if i-th contour doesn't overlap with any other contour
-                    break
-                mean_distance = compute_mean_distance(contours[i].bins, contours[i].t_start, contours[j].bins,
-                                                      contours[j].t_start)
-                if 115 <= mean_distance <= 125:  # 1200 +/- 50 cents
-                    i_distance = compute_mean_distance(melody_pitch_mean, 0, contours[i].bins, contours[i].t_start)
-                    j_distance = compute_mean_distance(melody_pitch_mean, 0, contours[j].bins, contours[j].t_start)
-                    if i_distance > j_distance:
-                        filtered.add(i)
-                    else:
-                        filtered.add(j)
-                    break
+                overlap = min(i_end, contours[j].t_start + len(contours[j].bins)) - contours[j].t_start
+                if overlap > 0:
+                    mean_distance = compute_mean_distance(contours[i].bins, contours[i].t_start, contours[j].bins,
+                                                          contours[j].t_start)
+                    if 115 <= mean_distance <= 125:  # 1200 +/- 50 cents
+                        heappush(hq, (-overlap, i, j))
+
+        filtered = set()
+        while len(hq) > 0:
+            _, i, j = heappop(hq)
+            if i in filtered or j in filtered:
+                continue
+            i_distance = compute_mean_distance(melody_pitch_mean, 0, contours[i].bins, contours[i].t_start)
+            j_distance = compute_mean_distance(melody_pitch_mean, 0, contours[j].bins, contours[j].t_start)
+            if i_distance > j_distance:
+                filtered.add(i)
+            else:
+                filtered.add(j)
         filtered_contours = [contour for i, contour in enumerate(contours) if i not in filtered]
 
         # re-compute melody pitch mean
