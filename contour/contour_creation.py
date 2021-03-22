@@ -12,19 +12,19 @@ pitch_cont_threshold = 80
 max_gap = 0.1
 
 class Contour:
-    def __init__(self, t_start, peaks, saliences, sampling_frequency):
+    def __init__(self, t_start, bins, saliences, sampling_frequency):
         self.t_start = t_start
-        self.peaks = np.array(peaks)
+        self.bins = np.array(bins)
         self.saliences = np.array(saliences)
         self.sampling_frequency = sampling_frequency
 
         # compute characteristics
-        self.pitch_mean = np.mean(self.peaks)
-        self.pitch_deviation = np.std(self.peaks)
+        self.pitch_mean = np.mean(self.bins)
+        self.pitch_deviation = np.std(self.bins)
         self.salience_mean = np.mean(self.saliences)
         self.salience_total = np.sum(self.saliences)
         self.salience_deviation = np.std(self.saliences)
-        self.length = len(self.peaks)
+        self.length = len(self.bins)
         self.vibrato = self.has_vibrato()
 
     def has_vibrato(self):
@@ -134,8 +134,7 @@ def create_contours(saliences, fs):
     space = np.zeros((n_bins, t_size))
     contours = []
     while len(hq) > 0:
-        start = heappop(hq)
-        i, b = start[1], start[2]
+        _, i, b = heappop(hq)
         if b not in high[i]:
             # skip if this salience is removed from high
             continue
@@ -149,10 +148,10 @@ def create_contours(saliences, fs):
         # track backwards in time
         left_contour = track_salience(space=space, high=high, low=low, b_start=b, t_start=i, step=-1, fs=fs)
 
-        contour_peaks = left_contour[::-1] + [b] + right_contour
+        contour_bins = left_contour[::-1] + [b] + right_contour
         t_start = i - len(left_contour)
-        contour_saliences = [saliences[contour_peaks[i], t_start + i] for i in range(len(contour_peaks))]
-        contour = Contour(t_start, contour_peaks, contour_saliences, fs / hop_size)
+        contour_saliences = [saliences[contour_bins[i], t_start + i] for i in range(len(contour_bins))]
+        contour = Contour(t_start, contour_bins, contour_saliences, fs / hop_size)
         contours.append(contour)
 
     print(f'created {len(contours)} contours')

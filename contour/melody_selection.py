@@ -28,8 +28,9 @@ def compute_melody_pitch_mean(contours, t_size, fs):
     melody_pitch_mean = np.zeros(t_size)
     melody_pitch_contours = np.zeros(t_size)
     for contour in contours:
-        contour_t_end = contour.t_start + len(contour.peaks)
-        melody_pitch_mean[contour.t_start:contour_t_end] += contour.saliences @ contour.peaks
+        contour_t_end = contour.t_start + len(contour.bins)
+        weights = contour.saliences / np.sum(contour.saliences)
+        melody_pitch_mean[contour.t_start:contour_t_end] += weights @ contour.bins
         melody_pitch_contours[contour.t_start:contour_t_end] += 1
 
     # set indices where contours are not present to 1 to avoid dividing by zero
@@ -40,23 +41,24 @@ def compute_melody_pitch_mean(contours, t_size, fs):
     smoothed_melody_pitch_mean = np.zeros(t_size)
     filter_size = int(sliding_mean_filter_size // (hop_size / fs))
     for i in range(t_size):
-        # end - start != filter_size but will not be off by much
+        # end - start != filter_size exactly since integer division, but will not be off by much
         start = max(i - filter_size // 2, 0)
         end = i + filter_size // 2
-        smoothed_melody_pitch_mean[i] = np.mean(melody_pitch_mean[start:end])
+        window = melody_pitch_mean[start:end]
+        smoothed_melody_pitch_mean[i] = np.mean(window[window != 0])  # only use non-zero values in window
 
     return smoothed_melody_pitch_mean
 
-def compute_mean_distance(peaks1, peaks1_start, peaks2, peaks2_start):
-    # note that t_start of peaks1 <= t_start of peaks2
+def compute_mean_distance(bins1, bins1_start, bins2, bins2_start):
+    # note that t_start of bins1 <= t_start of bins2
     distances = []
-    for i in range(peaks2_start, peaks2_start + len(peaks2)):
-        contour1_index = i - peaks1_start
-        if contour1_index >= len(peaks1):
+    for i in range(bins2_start, bins2_start + len(bins2)):
+        contour1_index = i - bins1_start
+        if contour1_index >= len(bins1):
             # break if they don't overlap anymore
             break
-        contour2_index = i - peaks2_start
-        distances.append(abs(peaks1[contour1_index] - peaks2[contour2_index]))
+        contour2_index = i - bins2_start
+        distances.append(abs(bins1[contour1_index] - bins2[contour2_index]))
 
     return np.mean(distances)
 
@@ -72,32 +74,29 @@ def remove_octave_errors(contours, t_size, fs):
 
         # detect octave errors (consider all input contours)
         filtered_contours.clear()
-        i = 0
-        while i < len(contours):
-            remove_curr = False
-            remove_next = False
+        filtered = set()
+        for i in range(len(contours)):
+            if i in filtered:
+                # already filtered out previously
+                continue
+
             for j in range(i + 1, len(contours)):
-                i_end = contours[i].t_start + len(contours[i].peaks)
+                i_end = contours[i].t_start + len(contours[i].bins)
                 if i_end <= contours[j].t_start:
                     # break if i-th contour doesn't overlap with any other contour
                     break
-                mean_distance = compute_mean_distance(contours[i].peaks, contours[i].t_start, contours[j].peaks,
+                mean_distance = compute_mean_distance(contours[i].bins, contours[i].t_start, contours[j].bins,
                                                       contours[j].t_start)
-                if 1150 <= mean_distance <= 1250:
-                    i_distance = compute_mean_distance(melody_pitch_mean, 0, contours[i].peaks, contours[i].t_start)
-                    j_distance = compute_mean_distance(melody_pitch_mean, 0, contours[j].peaks, contours[j].t_start)
+                if 115 <= mean_distance <= 125:  # 1200 +/- 50 cents
+                    i_distance = compute_mean_distance(melody_pitch_mean, 0, contours[i].bins, contours[i].t_start)
+                    j_distance = compute_mean_distance(melody_pitch_mean, 0, contours[j].bins, contours[j].t_start)
                     if i_distance > j_distance:
-                        remove_curr = True
+                        filtered.add(i)
                     else:
-                        remove_next = True
+                        filtered.add(j)
                     break
 
-            if not remove_curr:
-                filtered_contours.append(contours[i])
-            if remove_next:
-                # remove next by skipping it
-                i += 1
-            i += 1
+        filtered_contours = [contour for i, contour in enumerate(contours) if i not in filtered]
 
         # re-compute melody pitch mean
         melody_pitch_mean = compute_melody_pitch_mean(filtered_contours, t_size, fs)
@@ -105,12 +104,12 @@ def remove_octave_errors(contours, t_size, fs):
         # remove pitch outliers (consider only non-octave error contours)
         non_outlier_contours = []
         for contour in filtered_contours:
-            mean_distance = compute_mean_distance(melody_pitch_mean, 0, contour.peaks, contour.t_start)
-            if mean_distance < 1200:
+            mean_distance = compute_mean_distance(melody_pitch_mean, 0, contour.bins, contour.t_start)
+            if mean_distance < 120:  # 1200 cents
                 non_outlier_contours.append(contour)
         filtered_contours = non_outlier_contours
 
-    return contours
+    return filtered_contours
 
 def select_melody(contours, t_size, fs):
     melody = np.zeros(t_size)
@@ -121,9 +120,9 @@ def select_melody(contours, t_size, fs):
     # determine melody
     melody_saliences = np.zeros(t_size)
     for contour in contours:
-        for i in range(contour.t_start, min(contour.t_start + len(contour.peaks), t_size - 1)):
+        for i in range(contour.t_start, min(contour.t_start + len(contour.bins), t_size - 1)):
             if contour.salience_total > melody_saliences[i]:
-                melody[i] = contour.peaks[i - contour.t_start]
+                melody[i] = contour.bins[i - contour.t_start]
                 melody_saliences[i] = contour.salience_total
 
     return melody
