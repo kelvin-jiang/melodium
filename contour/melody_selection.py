@@ -130,6 +130,8 @@ def select_melody(contours, t_size, fs):
     return melody
 
 def plot_melody(melody, fs, filename):
+    plt.clf()
+
     tt = np.arange(len(melody)) * (hop_size / fs)
     nonzero_melody = np.copy(melody)
     nonzero_melody[nonzero_melody == 0] = np.nan
@@ -137,7 +139,7 @@ def plot_melody(melody, fs, filename):
     plt.title('Melody')
     plt.xlabel('time (s)')
     plt.ylabel('frequency (bins)')
-    plt.savefig(filename, dpi=128)
+    plt.savefig(filename, dpi=128, bbox_inches='tight')
 
 def main():
     fs = 44100

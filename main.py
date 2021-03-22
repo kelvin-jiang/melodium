@@ -1,7 +1,7 @@
 import argparse
 import numpy as np
 
-from contour import create_contours, plot_contours
+from contour import create_contours, plot_contours, plot_melody, select_melody
 from salience import compute_saliences, plot_saliences
 from spectral import equal_loudness_filter, plot_spectral_transform, spectral_transform
 from utils import load_wav_file, write_wav_file
@@ -26,10 +26,10 @@ def extract_melody(audio, fs, args):
     plot_contours(space, fs, len(contours), args.contour_plot)
 
     # melody selection
-    # TODO: voicing detection
-    # TODO: pitch outlier removal
-    # TODO: melody peak selection
-    return 'mELodY'
+    melody = select_melody(contours, space.shape[1], fs)
+    plot_melody(melody, fs, args.melody_plot)
+
+    return melody
 
 def main():
     parser = argparse.ArgumentParser()
@@ -41,11 +41,12 @@ def main():
     parser.add_argument('--cached_saliences', default='./output/salience.npy')
     parser.add_argument('--salience_plot', default='./output/salience')
     parser.add_argument('--contour_plot', default='./output/contours')
+    parser.add_argument('--melody_plot', default='./output/melody')
     parser.add_argument('--workers', type=int, default=1)
     args = parser.parse_args()
 
     fs, audio = load_wav_file(args.input)
-    # assert fs == 44100
+    assert fs == 44100
     melody = extract_melody(audio, fs, args)
     # write_wav_file(melody, args.output, fs)
 

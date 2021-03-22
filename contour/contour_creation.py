@@ -158,13 +158,15 @@ def create_contours(saliences, fs):
     return contours, space
 
 def plot_contours(space, fs, n_contours, filename):
+    plt.clf()
+
     tt = np.arange(space.shape[1]) * (hop_size / fs)
     bins = np.arange(n_bins)
     plt.pcolormesh(tt, bins, space, shading='nearest', cmap='binary')
     plt.title(f'Contours ({n_contours} total)')
     plt.xlabel('time (s)')
     plt.ylabel('frequency (bins)')
-    plt.savefig(filename, dpi=128)
+    plt.savefig(filename, dpi=128, bbox_inches='tight')
 
 def main():
     fs = 44100

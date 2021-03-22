@@ -122,6 +122,8 @@ def compute_saliences(f, t, Zxx, n_workers, fs, cached_saliences, t_seconds=10):
     return saliences
 
 def plot_saliences(t, saliences, fs, filename, t_seconds=10):
+    plt.clf()
+
     bins = np.arange(n_bins)
     # take the middle frequency in each bin
     # frequencies = 55 * (2 ** ((10 * bins + 5)/1200))
@@ -130,7 +132,7 @@ def plot_saliences(t, saliences, fs, filename, t_seconds=10):
     plt.title('Salience')
     plt.xlabel('time (s)')
     plt.ylabel('frequency (bins)')
-    plt.savefig(filename, dpi=128)
+    plt.savefig(filename, dpi=128, bbox_inches='tight')
 
 def main():
     parser = argparse.ArgumentParser()

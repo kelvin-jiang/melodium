@@ -15,6 +15,8 @@ def spectral_transform(audio, fs):
     return f, t, Zxx
 
 def plot_spectral_transform(f, t, Zxx, fs, filename, t_seconds=10, f_freqs=2000):
+    plt.clf()
+
     # peak finding (for each time window)
     for i in range(Zxx.shape[1]):
         peaks, _ = find_peaks(np.abs(Zxx[:, i]))
@@ -27,7 +29,10 @@ def plot_spectral_transform(f, t, Zxx, fs, filename, t_seconds=10, f_freqs=2000)
     t_size = -(-t_seconds * fs) // hop_size
     f_freqs = -(-f_freqs * fft_length) // fs
     plt.pcolormesh(t[:t_size], f[:f_freqs], Zxx[:f_freqs, :t_size], cmap='binary', shading='gouraud')
-    plt.savefig(filename, dpi=128)
+    plt.title('Spectral Transform')
+    plt.xlabel('time (s)')
+    plt.ylabel('frequency (Hz)')
+    plt.savefig(filename, dpi=128, bbox_inches='tight')
 
 def main():
     parser = argparse.ArgumentParser()
