@@ -29,6 +29,9 @@ def get_bin_index(freq):
     """
     return (1200 * math.log2(freq / 55)) // 10
 
+def get_hz_from_bin(b):
+    return 55 * (2 ** ((10 * b + 5) / 1200))
+
 def magnitude_threshold(magnitude, max_magnitude):
     db_diff = 20 * math.log10(max_magnitude / magnitude)
     return 1 if db_diff < max_magnitude_diff else 0

@@ -9,4 +9,6 @@ def load_wav_file(audio_file, merge_channels=False):
     return fs, audio
 
 def write_wav_file(melody, melody_file, fs):
-    wav.write(melody_file, fs, melody)
+    # normalize to 0db
+    y = melody / np.max(melody)
+    wav.write(melody_file, fs, y)

@@ -1,7 +1,7 @@
 import argparse
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.signal import find_peaks, stft
+from scipy.signal import find_peaks, stft, istft, check_NOLA
 
 from utils import load_wav_file
 
@@ -13,6 +13,9 @@ def spectral_transform(audio, fs):
     f, t, Zxx = stft(audio, fs, nperseg=window_length, noverlap=window_length - hop_size, nfft=fft_length)
 
     return f, t, Zxx
+
+def inverse_spectral_transform(Zxx, fs):
+    return istft(Zxx, fs, nperseg=window_length, noverlap=window_length - hop_size, nfft=fft_length)
 
 def plot_spectral_transform(f, t, Zxx, fs, filename, t_seconds=10, f_freqs=2000):
     plt.clf()
