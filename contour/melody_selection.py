@@ -115,7 +115,7 @@ def remove_octave_errors(contours, t_size, fs):
     return filtered_contours
 
 def select_melody(contours, t_size, fs):
-    melody = np.zeros(t_size)
+    melody = np.full(t_size, -np.inf)
 
     contours = detect_voicing(contours)
     contours = remove_octave_errors(contours, t_size, fs)
@@ -135,9 +135,7 @@ def plot_melody(melody, fs, filename):
     plt.clf()
 
     tt = np.arange(len(melody)) * (hop_size / fs)
-    nonzero_melody = np.copy(melody)
-    nonzero_melody[nonzero_melody == 0] = np.nan
-    plt.plot(tt, nonzero_melody, 'k')
+    plt.plot(tt, melody, 'k')
     plt.title('Melody')
     plt.xlabel('time (s)')
     plt.ylabel('frequency (bins)')

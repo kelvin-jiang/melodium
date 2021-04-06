@@ -13,6 +13,14 @@ def write_wav_file(melody, melody_file, fs):
     y = melody / np.max(melody)
     wav.write(melody_file, fs, y)
 
+def load_melody(melody_file):
+    melody = []
+    with open(melody_file, 'r', encoding='utf-8') as f:
+        for line in f:
+            _, freq = line.strip().split()
+            melody.append(float(freq))
+    return np.array(melody)
+
 def write_melody(melody, melody_file, fs, hop_size):
     with open(melody_file, 'w', encoding='utf-8') as f:
         for i, curr_freq in enumerate(melody):
