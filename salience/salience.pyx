@@ -141,7 +141,7 @@ def compute_saliences(f, t, Zxx, n_workers, fs, cached_saliences, t_size):
     # use multiprocessing to compute salience
     pool = mp.Pool(processes=n_workers)
     jobs = [(Zxx[:, i], f, i) for i in range(t_size)]
-    results = pool.starmap(compute_frame_salience, jobs)
+    results = pool.starmap(compute_frame_salience, jobs, chunksize=100)
     pool.close()
     pool.join()
 

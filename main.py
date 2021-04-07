@@ -9,17 +9,23 @@ from utils import load_wav_file, write_wav_file
 def extract_melody(audio, fs, args):
     # sinusoid extraction
     if not args.omit_elf:
+        print("Applying equal loudness filter...")
         audio = equal_loudness_filter(audio)
+    print("Spectral transform...")
     f, t, Zxx = spectral_transform(audio, fs)
+    print("Plotting spectral transform...")
     plot_spectral_transform(f, t, Zxx, fs, args.spectral_plot)
     # TODO: frequency correction
 
     # compute saliences
     t_size = t.shape[0] if args.duration < 0 else -(-args.duration * fs) // hop_size
     if args.use_cached_saliences:
+        print("Loading salience...")
         saliences = np.load(args.cached_saliences)
     else:
+        print("Computing salience...")
         saliences = compute_saliences(f, t, Zxx, args.workers, fs, args.cached_saliences, t_size)
+    print("Plotting salience...")
     plot_saliences(t, saliences, fs, args.salience_plot, t_size)
 
     # pitch contour creation
