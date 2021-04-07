@@ -3,7 +3,7 @@ import numpy as np
 
 from contour import create_contours, plot_contours, plot_melody, select_melody
 from salience import compute_saliences, plot_saliences
-from spectral import equal_loudness_filter, plot_spectral_transform, spectral_transform
+from spectral import equal_loudness_filter, plot_spectral_transform, spectral_transform, hop_size
 from utils import load_wav_file, write_wav_file
 
 def extract_melody(audio, fs, args):
@@ -15,11 +15,12 @@ def extract_melody(audio, fs, args):
     # TODO: frequency correction
 
     # compute saliences
+    t_size = t.shape[0] if args.duration < 0 else -(-args.duration * fs) // hop_size
     if args.use_cached_saliences:
         saliences = np.load(args.cached_saliences)
     else:
-        saliences = compute_saliences(f, t, Zxx, args.workers, fs, args.cached_saliences)
-    plot_saliences(t, saliences, fs, args.salience_plot)
+        saliences = compute_saliences(f, t, Zxx, args.workers, fs, args.cached_saliences, t_size)
+    plot_saliences(t, saliences, fs, args.salience_plot, t_size)
 
     # pitch contour creation
     contours, space = create_contours(saliences, fs)
@@ -43,6 +44,7 @@ def main():
     parser.add_argument('--contour_plot', default='./output/contours')
     parser.add_argument('--melody_plot', default='./output/melody')
     parser.add_argument('--workers', type=int, default=1)
+    parser.add_argument('--duration', type=int, default=-1)
     args = parser.parse_args()
 
     fs, audio = load_wav_file(args.input)
