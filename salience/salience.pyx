@@ -126,7 +126,9 @@ def compute_frame_salience(np.ndarray[DTYPE_t] magnitudes, np.ndarray[DTYPE_t] f
     for b in range(n_bins):
         salience[b] = salience_function(b, peak_f, peaks, max_magnitude)
 
-    print(f'frame {i}: {time.time() - start_time : .2f}s')
+    frame_time = (time.time() - start_time) * 1000
+    if i % 100 == 0:
+        print(f'frame {i}: {frame_time : .2f}ms')
     return i, salience
 
 def compute_saliences(f, t, Zxx, n_workers, fs, cached_saliences, t_size):
@@ -148,7 +150,8 @@ def compute_saliences(f, t, Zxx, n_workers, fs, cached_saliences, t_size):
     for i, salience in results:
         saliences[:, i] = salience
 
-    print(f'salience done: {time.time() - start_time : .2f}s')
+    compute_salience_time = time.time() - start_time
+    print(f'salience done: {compute_salience_time : .2f}s, {compute_salience_time / t_size * 1000 : .2f}ms/frame on average')
 
     np.save(cached_saliences, saliences)
 
