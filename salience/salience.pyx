@@ -39,9 +39,6 @@ def get_bin_index(double freq):
     result = int(math.floor((1200 * math.log2(freq / 55)) // 10))
     return result
 
-def get_hz_from_bin(b):
-    return 55 * (2 ** ((10 * b + 5) / 1200))
-
 @cython.cdivision(True)
 def magnitude_threshold(double magnitude, double max_magnitude):
     cdef double db_diff

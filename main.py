@@ -3,7 +3,7 @@ import numpy as np
 
 from contour import create_contours, plot_contours, plot_melody, select_melody
 from salience import compute_saliences, plot_saliences
-from spectral import equal_loudness_filter, plot_spectral_transform, spectral_transform, hop_size
+from spectral import equal_loudness_filter, plot_spectral_transform, spectral_transform, hop_size, inverse_spectral_transform
 from utils import load_wav_file, write_wav_file
 
 def extract_melody(audio, fs, args):
@@ -29,14 +29,22 @@ def extract_melody(audio, fs, args):
     plot_saliences(t, saliences, fs, args.salience_plot, t_size)
 
     # pitch contour creation
+    print("Creating pitch contours...")
     contours, space = create_contours(saliences, fs)
+    print("Plotting pitch contours...")
     plot_contours(space, fs, len(contours), args.contour_plot)
 
     # melody selection
+    print("Selecting melody...")
     melody = select_melody(contours, space.shape[1], fs)
+    print("Plotting melody...")
     plot_melody(melody, fs, args.melody_plot)
 
-    return melody
+    # reconstruct melody as audio signal
+    _, melody_audio = inverse_spectral_transform(melody, fs)
+    normalized_melody_audio = melody_audio / np.max(melody_audio)
+
+    return melody, normalized_melody_audio
 
 def main():
     parser = argparse.ArgumentParser()
@@ -55,8 +63,8 @@ def main():
 
     fs, audio = load_wav_file(args.input)
     assert fs == 44100
-    melody = extract_melody(audio, fs, args)
-    # write_wav_file(melody, args.output, fs)
+    melody, melody_audio = extract_melody(audio, fs, args)
+    write_wav_file(melody_audio, args.output, fs)
 
 if __name__ == '__main__':
     main()

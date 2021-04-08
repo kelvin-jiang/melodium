@@ -9,13 +9,25 @@ window_length = 2048  # M in paper
 hop_size = 128  # H in paper
 fft_length = 8192  # N in paper
 
+def get_hz_from_bin(b):
+    return 55 * (2 ** ((10 * b + 5) / 1200))
+
 def spectral_transform(audio, fs):
     f, t, Zxx = stft(audio, fs, nperseg=window_length, noverlap=window_length - hop_size, nfft=fft_length)
 
     return f, t, Zxx
 
-def inverse_spectral_transform(Zxx, fs):
-    return istft(Zxx, fs, nperseg=window_length, noverlap=window_length - hop_size, nfft=fft_length)
+def inverse_spectral_transform(melody_bins, fs):
+    melody_freqs = get_hz_from_bin(melody_bins)
+    hz_res = fs / fft_length
+    melody_hz = (melody_freqs // hz_res).astype(np.int_)
+    f_size = fft_length // 2 + 1
+    t_size = melody_hz.shape[0]
+    melody_2d = np.zeros((t_size, f_size))
+    for t in range(t_size):
+        melody_2d[t, melody_hz[t]] = 1
+    melody_2d = np.transpose(melody_2d)
+    return istft(melody_2d, fs, nperseg=window_length, noverlap=window_length - hop_size, nfft=fft_length)
 
 def plot_spectral_transform(f, t, Zxx, fs, filename, t_seconds=10, f_freqs=2000):
     plt.clf()
