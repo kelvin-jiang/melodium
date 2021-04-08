@@ -11,7 +11,8 @@ def load_wav_file(audio_file, merge_channels=False):
 def write_wav_file(melody, melody_file, fs):
     # normalize to 0 db
     y = melody / np.max(melody)
-    wav.write(melody_file, fs, y)
+    # 16-bit PCM
+    wav.write(melody_file, fs, (y * np.iinfo(np.int16).max).astype(np.int16))
 
 def load_melody(melody_file):
     melody = []

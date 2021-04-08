@@ -42,9 +42,8 @@ def extract_melody(audio, fs, args):
 
     # reconstruct melody as audio signal
     _, melody_audio = inverse_spectral_transform(melody, fs)
-    normalized_melody_audio = melody_audio / np.max(melody_audio)
 
-    return melody, normalized_melody_audio
+    return melody, melody_audio
 
 def main():
     parser = argparse.ArgumentParser()
