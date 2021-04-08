@@ -62,17 +62,14 @@ def weighting_function(int b, int h, double b_f0):
     return result
 
 @cython.cdivision(True)
-def salience_function(int b, np.ndarray[DTYPE_t] f, np.ndarray[DTYPE_t] peaks, double max_magnitude):
+def salience_function(int b, np.ndarray[DTYPE_t] f, np.ndarray[DTYPE_t] peaks,
+                      double max_magnitude, np.ndarray[double] h_weights):
     """
     :param b: F0 candidate
     :param f:
     :param peaks:
     :return: salience for freq
     """
-    if f.shape[0] != peaks.shape[0]:
-        print('error: f and peaks have mismatched length')
-        sys.exit(1)
-
     cdef DTYPE_t magnitude
     cdef DTYPE_t freq
     cdef double f0
@@ -108,7 +105,7 @@ def salience_function(int b, np.ndarray[DTYPE_t] f, np.ndarray[DTYPE_t] peaks, d
             else:
                 # if candidate frequency is close to harmonic frequency, calculate weighting
                 weight = math.cos(d_semitones * math.pi / 2)
-                weighting = weight * weight * harmonic_weights[h - 1]
+                weighting = weight * weight * h_weights[h - 1]
             if weighting == 0 and b_f0 > b:
                 # stop early, because later frequencies will be too large
                 break
@@ -127,8 +124,9 @@ def salience_function(int b, np.ndarray[DTYPE_t] f, np.ndarray[DTYPE_t] peaks, d
     return salience
 
 def compute_frame_salience(np.ndarray[DTYPE_t] magnitudes, np.ndarray[DTYPE_t] f, int i):
-    cdef np.ndarray[DTYPE_t] peaks, peak_f, salience
+    cdef np.ndarray[double] peaks, peak_f, salience
     cdef double max_magnitude
+    cdef np.ndarray[double] h_weights = np.asarray(harmonic_weights)
 
     start_time = time.time()
     # find peaks
@@ -139,7 +137,7 @@ def compute_frame_salience(np.ndarray[DTYPE_t] magnitudes, np.ndarray[DTYPE_t] f
     max_magnitude = np.max(peaks)
 
     for b in range(n_bins):
-        salience[b] = salience_function(b, peak_f, peaks, max_magnitude)
+        salience[b] = salience_function(b, peak_f, peaks, max_magnitude, h_weights)
 
     frame_time = (time.time() - start_time) * 1000
     if i % 100 == 0:
