@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from contour import create_contours
-from spectral import hop_size, inverse_spectral_transform, get_hz_from_bin
+from spectral import get_hz_from_bin, hop_size, inverse_spectral_transform
 from utils import write_melody, write_wav_file
 
 voicing_lenience = 0.2
@@ -114,7 +114,7 @@ def remove_octave_errors(contours, t_size, fs):
     return filtered_contours
 
 def select_melody(contours, t_size, fs):
-    melody = np.full(t_size, -np.inf)
+    melody_bins = np.full(t_size, -np.inf)
 
     contours = detect_voicing(contours)
     contours = remove_octave_errors(contours, t_size, fs)
@@ -125,17 +125,22 @@ def select_melody(contours, t_size, fs):
     for contour in contours:
         for i in range(contour.t_start, min(contour.t_start + len(contour.bins), t_size - 1)):
             if contour.salience_total > melody_saliences[i]:
-                melody[i] = contour.bins[i - contour.t_start]
+                melody_bins[i] = contour.bins[i - contour.t_start]
                 melody_saliences[i] = contour.salience_total
 
-    return melody
+    # convert from bins to hz
+    melody_hz = get_hz_from_bin(melody_bins)
+
+    return melody_hz
 
 def plot_melody(melody, fs, filename):
+    # don't plot frames when melody is unvoiced
+    melody_nonzero = np.copy(melody)
+    melody_nonzero[melody_nonzero == 0] = -np.inf
+
     plt.clf()
-    melody_freqs = get_hz_from_bin(melody)
-    melody_freqs[melody_freqs == 0] = -np.inf
-    tt = np.arange(len(melody_freqs)) * (hop_size / fs)
-    plt.plot(tt, melody_freqs, 'k')
+    tt = np.arange(len(melody_nonzero)) * (hop_size / fs)
+    plt.plot(tt, melody_nonzero, 'k')
     plt.title('Melody')
     plt.xlabel('time (s)')
     plt.ylabel('frequency (hz)')
@@ -145,15 +150,14 @@ def main():
     fs = 44100
     saliences = np.load('./output/salience.npy')
     contours, space = create_contours(saliences, fs)
-    melody_bins = select_melody(contours, space.shape[1], fs)
-    melody_freqs = get_hz_from_bin(melody_bins)
+    melody = select_melody(contours, space.shape[1], fs)
 
-    plot_melody(melody_bins, fs, './output/melody')
+    plot_melody(melody, fs, './output/melody')
 
-    _, audio = inverse_spectral_transform(melody_bins, fs)
-    write_wav_file(audio, './output/melody.wav', fs)
+    # _, audio = inverse_spectral_transform(melody, fs)
+    # write_wav_file(audio, './output/melody.wav', fs)
 
-    write_melody(melody_freqs, './output/melody.txt', fs, hop_size)
+    write_melody(melody, './output/melody.txt', fs, hop_size)
 
 if __name__ == '__main__':
     main()

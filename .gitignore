@@ -170,3 +170,4 @@ dmypy.json
 .idea
 output/
 /salience/salience.html
+/salience/salience.c

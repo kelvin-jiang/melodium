@@ -38,18 +38,18 @@ def extract_melody(audio, fs, args):
     print("Selecting melody...")
     melody = select_melody(contours, space.shape[1], fs)
     print("Plotting melody...")
-    plot_melody(melody, fs, args.melody_plot)
+    plot_melody(melody, fs, './output/melody')
 
-    # reconstruct melody as audio signal
-    _, melody_audio = inverse_spectral_transform(melody, fs)
+    # TODO: reconstruct melody as audio signal
+    # _, melody_audio = inverse_spectral_transform(melody, fs)
 
-    return melody, melody_audio
+    return melody
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', required=True)
-    parser.add_argument('--output_data', required=True)
-    parser.add_argument('--output_audio', required=True)
+    parser.add_argument('--output_data')
+    # parser.add_argument('--output_audio')
     parser.add_argument('--omit_elf', action='store_true')
     parser.add_argument('--spectral_plot', default='./output/spectral')
     parser.add_argument('--use_cached_saliences', action='store_true')
@@ -64,9 +64,11 @@ def main():
     fs, audio = load_wav_file(args.input)
     assert fs == 44100
 
-    melody, melody_audio = extract_melody(audio, fs, args)
-    write_melody(melody, args.output_data, fs, hop_size)
-    write_wav_file(melody_audio, args.output_audio, fs)
+    melody = extract_melody(audio, fs, args)
+    if args.output_data:
+        write_melody(melody, args.output_data, fs, hop_size)
+    # if args.output_audio:
+    #     write_wav_file(melody_audio, args.output_audio, fs)
 
 if __name__ == '__main__':
     main()

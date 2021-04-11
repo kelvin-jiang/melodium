@@ -44,13 +44,13 @@ def evaluate_melody(melody, melody_hop_size, reference_file, reference_hop_size,
             total_unvoiced += 1
         total += 1
 
-    voiced_recall = recall / total_voiced
+    voiced_recall = recall / total_voiced if total_voiced > 0 else 1
     print(f'voiced recall rate: {voiced_recall: .3f} ({recall} of {total_voiced})')
-    voiced_false_alarm = false_alarm / total_unvoiced if total_unvoiced != 0 else 0
+    voiced_false_alarm = false_alarm / total_unvoiced if total_unvoiced > 0 else 0
     print(f'voiced false alarm rate: {voiced_false_alarm: .3f} ({false_alarm} of {total_unvoiced})')
-    raw_pitch_acc = pitch_accuracy / total_voiced
+    raw_pitch_acc = pitch_accuracy / total_voiced if total_voiced > 0 else 1
     print(f'raw pitch accuracy: {raw_pitch_acc: .3f} ({pitch_accuracy} of {total_voiced})')
-    overall_acc = overall_accuracy / total
+    overall_acc = overall_accuracy / total if total > 0 else 1
     print(f'overall accuracy: {overall_acc: .3f} ({overall_accuracy} of {total})')
 
     return voiced_recall, voiced_false_alarm, raw_pitch_acc, overall_acc
