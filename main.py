@@ -3,8 +3,8 @@ import numpy as np
 
 from contour import create_contours, plot_contours, plot_melody, select_melody
 from salience import compute_saliences, plot_saliences
-from spectral import equal_loudness_filter, plot_spectral_transform, spectral_transform, hop_size, inverse_spectral_transform
-from utils import load_wav_file, write_wav_file
+from spectral import equal_loudness_filter, hop_size, inverse_spectral_transform, plot_spectral_transform, spectral_transform
+from utils import load_wav_file, write_melody, write_wav_file
 
 def extract_melody(audio, fs, args):
     # sinusoid extraction
@@ -48,7 +48,8 @@ def extract_melody(audio, fs, args):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', required=True)
-    parser.add_argument('--output', required=True)
+    parser.add_argument('--output_data', required=True)
+    parser.add_argument('--output_audio', required=True)
     parser.add_argument('--omit_elf', action='store_true')
     parser.add_argument('--spectral_plot', default='./output/spectral')
     parser.add_argument('--use_cached_saliences', action='store_true')
@@ -62,8 +63,10 @@ def main():
 
     fs, audio = load_wav_file(args.input)
     assert fs == 44100
+
     melody, melody_audio = extract_melody(audio, fs, args)
-    write_wav_file(melody_audio, args.output, fs)
+    write_melody(melody, args.output_data, fs, hop_size)
+    write_wav_file(melody_audio, args.output_audio, fs)
 
 if __name__ == '__main__':
     main()
