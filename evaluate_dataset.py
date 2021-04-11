@@ -4,7 +4,7 @@ import numpy as np
 
 from contour import create_contours, select_melody
 from evaluation import evaluate_melody
-from salience import get_hz_from_bin
+from spectral import get_hz_from_bin
 from spectral import hop_size
 from utils import load_melody
 
@@ -21,7 +21,7 @@ def main():
 
     salience_files = [f for f in sorted(glob.glob(f'{args.saliences_dir}/*')) if f.endswith('.npy')]
     for salience_file in salience_files:
-        name = salience_file[-11:-4]  # lol
+        name = salience_file[salience_file.rfind('/')+1:-4]  # lol
 
         saliences = np.load(salience_file)
         contours, space = create_contours(saliences, fs)

@@ -3,8 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from contour import create_contours
-from salience import get_hz_from_bin
-from spectral import hop_size, inverse_spectral_transform, fft_length
+from spectral import hop_size, inverse_spectral_transform, get_hz_from_bin
 from utils import write_melody, write_wav_file
 
 voicing_lenience = 0.2
@@ -133,12 +132,13 @@ def select_melody(contours, t_size, fs):
 
 def plot_melody(melody, fs, filename):
     plt.clf()
-
-    tt = np.arange(len(melody)) * (hop_size / fs)
-    plt.plot(tt, melody, 'k')
+    melody_freqs = get_hz_from_bin(melody)
+    melody_freqs[melody_freqs == 0] = -np.inf
+    tt = np.arange(len(melody_freqs)) * (hop_size / fs)
+    plt.plot(tt, melody_freqs, 'k')
     plt.title('Melody')
     plt.xlabel('time (s)')
-    plt.ylabel('frequency (bins)')
+    plt.ylabel('frequency (hz)')
     plt.savefig(filename, dpi=128, bbox_inches='tight')
 
 def main():
