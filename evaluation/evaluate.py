@@ -44,10 +44,16 @@ def evaluate_melody(melody, melody_hop_size, reference_file, reference_hop_size,
             total_unvoiced += 1
         total += 1
 
-    print(f'voiced recall rate: {recall / total_voiced:.3f} ({recall} of {total_voiced})')
-    print(f'voiced false alarm rate: {false_alarm / total_unvoiced:.3f} ({false_alarm} of {total_unvoiced})')
-    print(f'raw pitch accuracy: {pitch_accuracy / total:.3f} ({pitch_accuracy} of {total})')
-    print(f'overall accuracy: {overall_accuracy / total:.3f} ({overall_accuracy} of {total})')
+    voiced_recall = recall / total_voiced
+    print(f'voiced recall rate: {voiced_recall:.3f} ({recall} of {total_voiced})')
+    voiced_false_alarm = false_alarm / total_unvoiced
+    print(f'voiced false alarm rate: {voiced_false_alarm:.3f} ({false_alarm} of {total_unvoiced})')
+    raw_pitch_acc = pitch_accuracy / total
+    print(f'raw pitch accuracy: {raw_pitch_acc:.3f} ({pitch_accuracy} of {total})')
+    overall_acc = overall_accuracy / total
+    print(f'overall accuracy: {overall_acc:.3f} ({overall_accuracy} of {total})')
+
+    return voiced_recall, voiced_false_alarm, raw_pitch_acc, overall_acc
 
 def main():
     parser = argparse.ArgumentParser()
