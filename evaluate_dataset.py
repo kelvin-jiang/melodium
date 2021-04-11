@@ -35,10 +35,10 @@ def main():
         print(f'done evaluating {salience_file}!')
 
     metrics_avg = np.mean(np.array(metrics), axis=0)
-    print(f'voiced recall rate: {metrics_avg[0]: .3f}')
-    print(f'voiced false alarm rate: {metrics_avg[1]: .3f}')
-    print(f'raw pitch accuracy: {metrics_avg[2]: .3f}')
-    print(f'overall accuracy: {metrics_avg[3]: .3f}')
+    print(f'total voiced recall rate: {metrics_avg[0]: .3f}')
+    print(f'total voiced false alarm rate: {metrics_avg[1]: .3f}')
+    print(f'total raw pitch accuracy: {metrics_avg[2]: .3f}')
+    print(f'total overall accuracy: {metrics_avg[3]: .3f}')
 
 if __name__ == '__main__':
     main()

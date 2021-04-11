@@ -30,8 +30,8 @@ def evaluate_melody(melody, melody_hop_size, reference_file, reference_hop_size,
         elif melody_freq != 0 and ref_freq == 0:
             false_alarm += 1
 
-        # accuracy / pitch accuracy
-        if ref_freq * (2**(-0.5 / 12)) <= melody_freq <= ref_freq * (2**(0.5 / 12)):
+        # pitch accuracy / overall accuracy
+        if ref_freq != 0 and ref_freq * (2**(-0.5 / 12)) <= melody_freq <= ref_freq * (2**(0.5 / 12)):
             pitch_accuracy += 1
         if (melody_freq == 0 and ref_freq == 0) or (melody_freq != 0 and ref_freq != 0 and \
                 ref_freq * (2**(-0.5 / 12)) <= melody_freq <= ref_freq * (2**(0.5 / 12))):
@@ -48,8 +48,8 @@ def evaluate_melody(melody, melody_hop_size, reference_file, reference_hop_size,
     print(f'voiced recall rate: {voiced_recall: .3f} ({recall} of {total_voiced})')
     voiced_false_alarm = false_alarm / total_unvoiced
     print(f'voiced false alarm rate: {voiced_false_alarm: .3f} ({false_alarm} of {total_unvoiced})')
-    raw_pitch_acc = pitch_accuracy / total
-    print(f'raw pitch accuracy: {raw_pitch_acc: .3f} ({pitch_accuracy} of {total})')
+    raw_pitch_acc = pitch_accuracy / total_voiced
+    print(f'raw pitch accuracy: {raw_pitch_acc: .3f} ({pitch_accuracy} of {total_voiced})')
     overall_acc = overall_accuracy / total
     print(f'overall accuracy: {overall_acc: .3f} ({overall_accuracy} of {total})')
 
