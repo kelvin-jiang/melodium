@@ -15,12 +15,13 @@ def detect_voicing(contours):
 
     # calculate voicing threshold
     avg_contour_mean_salience = np.mean([contour.salience_mean for contour in contours])
+    std_contour_mean_salience = np.std([contour.salience_mean for contour in contours])
+    voicing_threshold = avg_contour_mean_salience - voicing_lenience * std_contour_mean_salience
 
     for contour in contours:
         if contour.has_vibrato() or contour.pitch_deviation > 40:
             continue
 
-        voicing_threshold = avg_contour_mean_salience - voicing_lenience * contour.salience_deviation
         if contour.salience_mean >= voicing_threshold:
             filtered_contours.append(contour)
 
@@ -143,7 +144,7 @@ def plot_melody(melody, fs, filename):
     plt.plot(tt, melody_nonzero, 'k')
     plt.title('Melody')
     plt.xlabel('time (s)')
-    plt.ylabel('frequency (hz)')
+    plt.ylabel('frequency (Hz)')
     plt.savefig(filename, dpi=128, bbox_inches='tight')
 
 def main():

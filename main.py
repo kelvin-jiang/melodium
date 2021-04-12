@@ -11,7 +11,7 @@ def extract_melody(audio, fs, args):
     if not args.omit_elf:
         print("Applying equal loudness filter...")
         audio = equal_loudness_filter(audio)
-    print("Spectral transform...")
+    print("Applying spectral transform...")
     f, t, Zxx = spectral_transform(audio, fs)
     print("Plotting spectral transform...")
     plot_spectral_transform(f, t, Zxx, fs, args.spectral_plot)
@@ -48,7 +48,7 @@ def extract_melody(audio, fs, args):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--input', required=True)
-    parser.add_argument('--output_data')
+    parser.add_argument('--output_data', default='./output/melody.txt')
     # parser.add_argument('--output_audio')
     parser.add_argument('--omit_elf', action='store_true')
     parser.add_argument('--spectral_plot', default='./output/spectral')
@@ -65,8 +65,7 @@ def main():
     assert fs == 44100
 
     melody = extract_melody(audio, fs, args)
-    if args.output_data:
-        write_melody(melody, args.output_data, fs, hop_size)
+    write_melody(melody, args.output_data, fs, hop_size)
     # if args.output_audio:
     #     write_wav_file(melody_audio, args.output_audio, fs)
 

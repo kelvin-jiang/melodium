@@ -28,7 +28,7 @@ def plot_filter_response(b, a, title, output_file):
     plt.clf()
     plt.semilogx(w[1:], 20 * np.log10(np.abs(h[1:])))
     plt.title(title)
-    plt.xlabel('frequency (hz)')
+    plt.xlabel('frequency (Hz)')
     plt.ylabel('amplitude (dB)')
     plt.margins(0, 0.1)
     plt.grid(which='both', axis='both')
