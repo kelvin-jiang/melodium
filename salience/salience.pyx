@@ -39,6 +39,9 @@ def get_bin_index(double freq):
     result = int(math.floor((1200 * math.log2(freq / 55)) // 10))
     return result
 
+def get_hz_from_bin(b):
+    return 55 * (2 ** ((10 * b + 5) / 1200))
+
 @cython.cdivision(True)
 def magnitude_threshold(double magnitude, double max_magnitude):
     cdef double db_diff
@@ -59,14 +62,17 @@ def weighting_function(int b, int h, double b_f0):
     return result
 
 @cython.cdivision(True)
-def salience_function(int b, np.ndarray[DTYPE_t] f, np.ndarray[DTYPE_t] peaks,
-                      double max_magnitude, np.ndarray[double] h_weights):
+def salience_function(int b, np.ndarray[DTYPE_t] f, np.ndarray[DTYPE_t] peaks, double max_magnitude):
     """
     :param b: F0 candidate
     :param f:
     :param peaks:
     :return: salience for freq
     """
+    if f.shape[0] != peaks.shape[0]:
+        print('error: f and peaks have mismatched length')
+        sys.exit(1)
+
     cdef DTYPE_t magnitude
     cdef DTYPE_t freq
     cdef double f0
@@ -79,8 +85,6 @@ def salience_function(int b, np.ndarray[DTYPE_t] f, np.ndarray[DTYPE_t] peaks,
     cdef double min_frequency = min_freq_c
     cdef int num_harmonics = n_harmonics_c
     cdef int h
-    cdef double max_diff = max_magnitude_diff_c
-    cdef double d_semitones
 
     for h in range(1, num_harmonics + 1):
         has_weight = False
@@ -93,16 +97,8 @@ def salience_function(int b, np.ndarray[DTYPE_t] f, np.ndarray[DTYPE_t] peaks,
             if magnitude <= 0 or f0 < min_frequency or f0 >= max_frequency:
                 # skip out of bounds frequencies
                 continue
-            b_f0 = int(math.floor((1200 * math.log2(f0 / 55)) // 10))
-            # distance in semitones between harmonic frequency and center frequency of bin b
-            d_semitones = abs(b_f0 - b) / 10
-            if d_semitones > 1:
-                # ignore if frequencies are more than 1 semitone apart
-                weighting = 0
-            else:
-                # if candidate frequency is close to harmonic frequency, calculate weighting
-                weight = math.cos(d_semitones * math.pi / 2)
-                weighting = weight * weight * h_weights[h - 1]
+            b_f0 = get_bin_index(f0)
+            weighting = weighting_function(b, h, b_f0)
             if weighting == 0 and b_f0 > b:
                 # stop early, because later frequencies will be too large
                 break
@@ -110,20 +106,14 @@ def salience_function(int b, np.ndarray[DTYPE_t] f, np.ndarray[DTYPE_t] peaks,
                 # save the smallest activated frequency in this iteration for optimization purposes
                 has_weight = True
                 first_freq_ind = i
-            # calculate the difference between the highest magnitude and the current magnitude in db
-            db_diff = 20 * math.log10(max_magnitude / magnitude)
-            # filter out if magnitude is over maximum allowable db difference
-            mag_threshold = 1 if db_diff < max_diff else 0
-
-            # compute salience
+            mag_threshold = magnitude_threshold(magnitude, max_magnitude)
             salience += mag_threshold * weighting * magnitude
 
     return salience
 
 def compute_frame_salience(np.ndarray[DTYPE_t] magnitudes, np.ndarray[DTYPE_t] f, int i):
-    cdef np.ndarray[double] peaks, peak_f, salience
+    cdef np.ndarray[DTYPE_t] peaks, peak_f, salience
     cdef double max_magnitude
-    cdef np.ndarray[double] h_weights = np.asarray(harmonic_weights)
 
     start_time = time.time()
     # find peaks
@@ -134,7 +124,7 @@ def compute_frame_salience(np.ndarray[DTYPE_t] magnitudes, np.ndarray[DTYPE_t] f
     max_magnitude = np.max(peaks)
 
     for b in range(n_bins):
-        salience[b] = salience_function(b, peak_f, peaks, max_magnitude, h_weights)
+        salience[b] = salience_function(b, peak_f, peaks, max_magnitude)
 
     frame_time = (time.time() - start_time) * 1000
     if i % 100 == 0:
