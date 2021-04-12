@@ -54,6 +54,7 @@ def magnitude_threshold(double magnitude, double max_magnitude):
 def weighting_function(int b, int h, double b_f0):
     # distance in semitones between harmonic frequency and center frequency of bin b
     cdef double result
+    cdef double d_semitones
     d_semitones = abs(b_f0 - b) / 10
     if d_semitones > 1:
         return 0
@@ -85,6 +86,8 @@ def salience_function(int b, np.ndarray[DTYPE_t] f, np.ndarray[DTYPE_t] peaks, d
     cdef double min_frequency = min_freq_c
     cdef int num_harmonics = n_harmonics_c
     cdef int h
+    cdef double db_diff
+    cdef double max_diff = max_magnitude_diff_c
 
     for h in range(1, num_harmonics + 1):
         has_weight = False
@@ -106,7 +109,10 @@ def salience_function(int b, np.ndarray[DTYPE_t] f, np.ndarray[DTYPE_t] peaks, d
                 # save the smallest activated frequency in this iteration for optimization purposes
                 has_weight = True
                 first_freq_ind = i
-            mag_threshold = magnitude_threshold(magnitude, max_magnitude)
+            # calculate the difference between the highest magnitude and the current magnitude in db
+            db_diff = 20 * math.log10(max_magnitude / magnitude)
+            # filter out if magnitude is over maximum allowable db difference
+            mag_threshold = 1 if db_diff < max_diff else 0
             salience += mag_threshold * weighting * magnitude
 
     return salience

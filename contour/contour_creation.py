@@ -7,7 +7,7 @@ from spectral import hop_size
 from salience import n_bins
 
 peak_threshold = 0.9  # tau+ in paper
-dev_degree = 0.3  # tau_sigma in paper
+dev_degree = 0.4  # tau_sigma in paper
 pitch_cont_threshold = 80
 max_gap = 0.1
 

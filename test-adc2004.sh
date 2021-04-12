@@ -1,20 +1,20 @@
-python3 main.py --input output/adc2004/daisy1.wav --cached_saliences output/adc2004/daisy1.npy --output_data output/adc2004/daisy1.melody --output_audio output/adc2004/melody-daisy1.wav --workers 15
-python3 main.py --input output/adc2004/daisy2.wav --cached_saliences output/adc2004/daisy2.npy --output_data output/adc2004/daisy2.melody --output_audio output/adc2004/melody-daisy2.wav --workers 15
-python3 main.py --input output/adc2004/daisy3.wav --cached_saliences output/adc2004/daisy3.npy --output_data output/adc2004/daisy3.melody --output_audio output/adc2004/melody-daisy3.wav --workers 15
-python3 main.py --input output/adc2004/daisy4.wav --cached_saliences output/adc2004/daisy4.npy --output_data output/adc2004/daisy4.melody --output_audio output/adc2004/melody-daisy4.wav --workers 15
-python3 main.py --input output/adc2004/jazz1.wav --cached_saliences output/adc2004/jazz1.npy --output_data output/adc2004/jazz1.melody --output_audio output/adc2004/melody-jazz1.wav --workers 15
-python3 main.py --input output/adc2004/jazz2.wav --cached_saliences output/adc2004/jazz2.npy --output_data output/adc2004/jazz2.melody --output_audio output/adc2004/melody-jazz2.wav --workers 15
-python3 main.py --input output/adc2004/jazz3.wav --cached_saliences output/adc2004/jazz3.npy --output_data output/adc2004/jazz3.melody --output_audio output/adc2004/melody-jazz3.wav --workers 15
-python3 main.py --input output/adc2004/jazz4.wav --cached_saliences output/adc2004/jazz4.npy --output_data output/adc2004/jazz4.melody --output_audio output/adc2004/melody-jazz4.wav --workers 15
-python3 main.py --input output/adc2004/opera_fem2.wav --cached_saliences output/adc2004/opera_fem2.npy --output_data output/adc2004/opera_fem2.melody --output_audio output/adc2004/melody-opera_fem2.wav --workers 15
-python3 main.py --input output/adc2004/opera_fem4.wav --cached_saliences output/adc2004/opera_fem4.npy --output_data output/adc2004/opera_fem4.melody --output_audio output/adc2004/melody-opera_fem4.wav --workers 15
-python3 main.py --input output/adc2004/opera_male3.wav --cached_saliences output/adc2004/opera_male3.npy --output_data output/adc2004/opera_male3.melody --output_audio output/adc2004/melody-opera_male3.wav --workers 15
-python3 main.py --input output/adc2004/opera_male5.wav --cached_saliences output/adc2004/opera_male5.npy --output_data output/adc2004/opera_male5.melody --output_audio output/adc2004/melody-opera_male5.wav --workers 15
-python3 main.py --input output/adc2004/midi1.wav --cached_saliences output/adc2004/midi1.npy --output_data output/adc2004/midi1.melody --output_audio output/adc2004/melody-midi1.wav --workers 15
-python3 main.py --input output/adc2004/midi2.wav --cached_saliences output/adc2004/midi2.npy --output_data output/adc2004/midi2.melody --output_audio output/adc2004/melody-midi2.wav --workers 15
-python3 main.py --input output/adc2004/midi3.wav --cached_saliences output/adc2004/midi3.npy --output_data output/adc2004/midi3.melody --output_audio output/adc2004/melody-midi3.wav --workers 15
-python3 main.py --input output/adc2004/midi4.wav --cached_saliences output/adc2004/midi4.npy --output_data output/adc2004/midi4.melody --output_audio output/adc2004/melody-midi4.wav --workers 15
-python3 main.py --input output/adc2004/pop1.wav --cached_saliences output/adc2004/pop1.npy --output_data output/adc2004/pop1.melody --output_audio output/adc2004/melody-pop1.wav --workers 15
-python3 main.py --input output/adc2004/pop2.wav --cached_saliences output/adc2004/pop2.npy --output_data output/adc2004/pop2.melody --output_audio output/adc2004/melody-pop2.wav --workers 15
-python3 main.py --input output/adc2004/pop3.wav --cached_saliences output/adc2004/pop3.npy --output_data output/adc2004/pop3.melody --output_audio output/adc2004/melody-pop3.wav --workers 15
-python3 main.py --input output/adc2004/pop4.wav --cached_saliences output/adc2004/pop4.npy --output_data output/adc2004/pop4.melody --output_audio output/adc2004/melody-pop4.wav --workers 15
+python3 main.py --input output/adc2004/daisy1.wav --cached_saliences output/adc2004/daisy1.npy --output_data output/adc2004/daisy1.melody --workers 15
+python3 main.py --input output/adc2004/daisy2.wav --cached_saliences output/adc2004/daisy2.npy --output_data output/adc2004/daisy2.melody --workers 15
+python3 main.py --input output/adc2004/daisy3.wav --cached_saliences output/adc2004/daisy3.npy --output_data output/adc2004/daisy3.melody --workers 15
+python3 main.py --input output/adc2004/daisy4.wav --cached_saliences output/adc2004/daisy4.npy --output_data output/adc2004/daisy4.melody --workers 15
+python3 main.py --input output/adc2004/jazz1.wav --cached_saliences output/adc2004/jazz1.npy --output_data output/adc2004/jazz1.melody --workers 15
+python3 main.py --input output/adc2004/jazz2.wav --cached_saliences output/adc2004/jazz2.npy --output_data output/adc2004/jazz2.melody --workers 15
+python3 main.py --input output/adc2004/jazz3.wav --cached_saliences output/adc2004/jazz3.npy --output_data output/adc2004/jazz3.melody --workers 15
+python3 main.py --input output/adc2004/jazz4.wav --cached_saliences output/adc2004/jazz4.npy --output_data output/adc2004/jazz4.melody --workers 15
+python3 main.py --input output/adc2004/opera_fem2.wav --cached_saliences output/adc2004/opera_fem2.npy --output_data output/adc2004/opera_fem2.melody --workers 15
+python3 main.py --input output/adc2004/opera_fem4.wav --cached_saliences output/adc2004/opera_fem4.npy --output_data output/adc2004/opera_fem4.melody --workers 15
+python3 main.py --input output/adc2004/opera_male3.wav --cached_saliences output/adc2004/opera_male3.npy --output_data output/adc2004/opera_male3.melody --workers 15
+python3 main.py --input output/adc2004/opera_male5.wav --cached_saliences output/adc2004/opera_male5.npy --output_data output/adc2004/opera_male5.melody --workers 15
+python3 main.py --input output/adc2004/midi1.wav --cached_saliences output/adc2004/midi1.npy --output_data output/adc2004/midi1.melody --workers 15
+python3 main.py --input output/adc2004/midi2.wav --cached_saliences output/adc2004/midi2.npy --output_data output/adc2004/midi2.melody --workers 15
+python3 main.py --input output/adc2004/midi3.wav --cached_saliences output/adc2004/midi3.npy --output_data output/adc2004/midi3.melody --workers 15
+python3 main.py --input output/adc2004/midi4.wav --cached_saliences output/adc2004/midi4.npy --output_data output/adc2004/midi4.melody --workers 15
+python3 main.py --input output/adc2004/pop1.wav --cached_saliences output/adc2004/pop1.npy --output_data output/adc2004/pop1.melody --workers 15
+python3 main.py --input output/adc2004/pop2.wav --cached_saliences output/adc2004/pop2.npy --output_data output/adc2004/pop2.melody --workers 15
+python3 main.py --input output/adc2004/pop3.wav --cached_saliences output/adc2004/pop3.npy --output_data output/adc2004/pop3.melody --workers 15
+python3 main.py --input output/adc2004/pop4.wav --cached_saliences output/adc2004/pop4.npy --output_data output/adc2004/pop4.melody --workers 15

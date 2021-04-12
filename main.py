@@ -25,6 +25,8 @@ def extract_melody(audio, fs, args):
     else:
         print("Computing salience...")
         saliences = compute_saliences(f, t, Zxx, args.workers, fs, args.cached_saliences, t_size)
+    import sys
+    sys.exit(0)
     print("Plotting salience...")
     plot_saliences(t, saliences, fs, args.salience_plot, t_size)
 
